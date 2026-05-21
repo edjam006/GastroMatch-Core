@@ -15,158 +15,107 @@
 }
 
 <div class="row align-items-center justify-content-center min-vh-75 py-4 g-5">
-    <!-- Left Column: Branding and Info -->
-    <div class="col-lg-5 text-center text-lg-start animate-fade-in">
-        <span class="badge bg-danger bg-opacity-25 text-danger border border-danger-subtle rounded-pill px-3 py-2 mb-3">
-            <i class="bi bi-stars me-1 text-danger"></i> Experiencia Inteligente
-        </span>
-        <h1 class="display-4 fw-bold mb-3 tracking-tight">
-            Descubre tu <span class="text-gradient">Fórmula Gastronómica</span>
+    <!-- Left Column: Branding -->
+    <div class="col-lg-4 text-center text-lg-start">
+        <h1 class="display-5 fw-bold mb-3">
+            GastroMatch
         </h1>
         <p class="lead text-white-50 mb-4">
-            Ajusta tu perfil en pocos segundos. GastroMatch procesa tu presupuesto, gustos y salud para conectarte con el plato ideal y el restaurante perfecto cerca de ti.
+            Defina sus preferencias culinarias, restricciones sanitarias de salud y presupuesto máximo para obtener las recomendaciones idóneas directo de nuestra base de datos.
         </p>
-        <div class="d-flex flex-column gap-3 mb-4">
-            <div class="d-flex align-items-center gap-3">
-                <div class="icon-circle bg-primary-subtle text-primary">
-                    <i class="bi bi-currency-dollar fs-5"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 text-white fw-semibold">Control Total de Gastos</h6>
-                    <span class="text-white-50 small">Sin sorpresas en tu cuenta final.</span>
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="icon-circle bg-warning-subtle text-warning">
-                    <i class="bi bi-shield-check fs-5"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 text-white fw-semibold">Seguridad en Alérgenos</h6>
-                    <span class="text-white-50 small">Filtros certificados para tu salud.</span>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Right Column: Interactive Preferences Card -->
-    <div class="col-lg-7">
-        <div class="card premium-card border-0 shadow-lg position-relative overflow-hidden">
-            <!-- Decorative colored ambient light inside the card -->
-            <div class="card-glow"></div>
-            
-            <div class="card-body p-4 p-md-5 position-relative z-1">
-                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary pb-3">
-                    <div>
-                        <h4 class="card-title fw-bold text-white mb-1">
-                            <i class="bi bi-sliders text-primary me-2"></i>Configuración de Preferencias
-                        </h4>
-                        <p class="card-subtitle text-white-50 small">Define tus gustos, presupuesto y restricciones</p>
+    <!-- Right Column: Interactive Preferences Form -->
+    <div class="col-lg-8">
+        <div class="p-4 p-md-5 rounded bg-dark border border-secondary border-opacity-25">
+            <h4 class="fw-bold text-white mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                Configuración del Perfil de Preferencias
+            </h4>
+
+            <form asp-controller="Recommendation" asp-action="ProcesarPreferencias" method="post" id="preferencesForm">
+                <!-- 1. Presupuesto (Slider) -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="budgetRange" class="form-label text-white fw-semibold mb-0">
+                            Presupuesto Máximo
+                        </label>
+                        <span class="text-primary fw-bold fs-5" id="budgetValue">
+                            $@((int)currentBudget) USD
+                        </span>
                     </div>
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 rounded-pill small">
-                        <i class="bi bi-shield-fill-check me-1"></i>Perfil Activo
-                    </span>
+                    <input type="range" class="form-range" id="budgetRange" name="RangoPrecioMax" min="15" max="250" step="5" value="@((int)currentBudget)" oninput="updateBudgetDisplay(this.value)">
+                    <div class="d-flex justify-content-between text-white-50 small px-1">
+                        <span>$15 USD</span>
+                        <span>$130 USD</span>
+                        <span>$250 USD</span>
+                    </div>
                 </div>
 
-                <form asp-controller="Recommendation" asp-action="ProcesarPreferencias" method="post" id="preferencesForm">
-                    <!-- 1. Presupuesto (Slider Funcional) -->
-                    <div class="mb-4 pb-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label for="budgetRange" class="form-label text-white fw-semibold mb-0">
-                                <i class="bi bi-currency-exchange text-info me-2"></i>Presupuesto Máximo
-                            </label>
-                            <span class="badge bg-primary bg-opacity-25 text-primary-light border border-primary-subtle fs-6 px-3 py-1 rounded-pill fw-bold" id="budgetValue">
-                                $@((int)currentBudget) USD
-                            </span>
-                        </div>
-                        <input type="range" class="form-range custom-range" id="budgetRange" name="RangoPrecioMax" min="15" max="250" step="5" value="@((int)currentBudget)" oninput="updateBudgetDisplay(this.value)">
-                        <div class="d-flex justify-content-between text-white-50 small px-1">
-                            <span>$15 USD</span>
-                            <span>$130 USD</span>
-                            <span>$250 USD</span>
-                        </div>
-                    </div>
-
-                    <!-- 2. Mis Gustos (Checkboxes Interactivos en Tarjeta) -->
-                    <div class="mb-4">
-                        <label class="form-label text-white fw-semibold mb-3">
-                            <i class="bi bi-heart-fill text-danger me-2"></i>Mis Gustos Culinarios
-                        </label>
-                        <div class="row g-3">
-                            <!-- Italiana -->
-                            <div class="col-md-4">
-                                <label class="custom-card-checkbox">
-                                    <input type="checkbox" name="tipoCocina" value="Italiana" class="d-none" @(hasItaliana ? "checked" : "") onchange="toggleCardState(this)">
-                                    <div class="card-check-content text-center p-3 rounded-3 @(hasItaliana ? "active" : "") border">
-                                        <i class="bi bi-egg-fried fs-2 text-warning mb-2 d-block"></i>
-                                        <span class="d-block fw-semibold text-white">Italiana</span>
-                                        <span class="text-white-50 small d-block mt-1">Pizzas y Pastas</span>
-                                    </div>
+                <!-- 2. Gustos Culinarios -->
+                <div class="mb-4">
+                    <label class="form-label text-white fw-semibold mb-2">
+                        Especialidades Culinarias Favoritas
+                    </label>
+                    <div class="row g-3 p-3 rounded bg-dark-subtle border border-secondary border-opacity-25">
+                        <!-- Italiana -->
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="tipoCocina" value="Italiana" id="gustoItaliana" @(hasItaliana ? "checked" : "")>
+                                <label class="form-check-label text-white" for="gustoItaliana">
+                                    Italiana
                                 </label>
                             </div>
-                            <!-- Mexicana -->
-                            <div class="col-md-4">
-                                <label class="custom-card-checkbox">
-                                    <input type="checkbox" name="tipoCocina" value="Mexicana" class="d-none" @(hasMexicana ? "checked" : "") onchange="toggleCardState(this)">
-                                    <div class="card-check-content text-center p-3 rounded-3 @(hasMexicana ? "active" : "") border">
-                                        <i class="bi bi-fire fs-2 text-danger mb-2 d-block"></i>
-                                        <span class="d-block fw-semibold text-white">Mexicana</span>
-                                        <span class="text-white-50 small d-block mt-1">Tacos y Picante</span>
-                                    </div>
+                        </div>
+                        <!-- Mexicana -->
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="tipoCocina" value="Mexicana" id="gustoMexicana" @(hasMexicana ? "checked" : "")>
+                                <label class="form-check-label text-white" for="gustoMexicana">
+                                    Mexicana
                                 </label>
                             </div>
-                            <!-- Asiática -->
-                            <div class="col-md-4">
-                                <label class="custom-card-checkbox">
-                                    <input type="checkbox" name="tipoCocina" value="Asiática" class="d-none" @(hasAsiatica ? "checked" : "") onchange="toggleCardState(this)">
-                                    <div class="card-check-content text-center p-3 rounded-3 @(hasAsiatica ? "active" : "") border">
-                                        <i class="bi bi-water fs-2 text-info mb-2 d-block"></i>
-                                        <span class="d-block fw-semibold text-white">Asiática</span>
-                                        <span class="text-white-50 small d-block mt-1">Ramen y Sushi</span>
-                                    </div>
+                        </div>
+                        <!-- Asiática -->
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="tipoCocina" value="Asiática" id="gustoAsiatica" @(hasAsiatica ? "checked" : "")>
+                                <label class="form-check-label text-white" for="gustoAsiatica">
+                                    Asiática
                                 </label>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- 3. Salud y Alergias (Switches Bootstrap 5) -->
-                    <div class="mb-4 pb-2">
-                        <label class="form-label text-white fw-semibold mb-2">
-                            <i class="bi bi-heart-pulse-fill text-success me-2"></i>Salud y Restricciones Dietéticas
-                        </label>
-                        <div class="p-3 rounded-3 bg-dark bg-opacity-40 border border-secondary border-opacity-50">
-                            <!-- Sin Gluten -->
-                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2 border-bottom border-secondary border-opacity-25">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinGluten" name="salud" value="Sin Gluten" @(isSinGluten ? "checked" : "")>
-                                    <label class="form-check-label text-white-50 ps-2" for="sinGluten">Sin Gluten</label>
-                                </div>
-                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle rounded-pill px-2 py-1 small">Apto Celíacos</span>
-                            </div>
-                            <!-- Sin Lactosa -->
-                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2 border-bottom border-secondary border-opacity-25">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinLactosa" name="salud" value="Sin Lactosa" @(isSinLactosa ? "checked" : "")>
-                                    <label class="form-check-label text-white-50 ps-2" for="sinLactosa">Sin Lactosa</label>
-                                </div>
-                                <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle rounded-pill px-2 py-1 small">Intolerancia</span>
-                            </div>
-                            <!-- Vegano -->
-                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="vegano" name="salud" value="Vegano" @(isVegano ? "checked" : "")>
-                                    <label class="form-check-label text-white-50 ps-2" for="vegano">Vegano</label>
-                                </div>
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2 py-1 small">100% Plant-Based</span>
-                            </div>
+                <!-- 3. Salud y Alergias (Switches) -->
+                <div class="mb-4">
+                    <label class="form-label text-white fw-semibold mb-2">
+                        Salud y Restricciones Dietéticas
+                    </label>
+                    <div class="p-3 rounded bg-dark-subtle border border-secondary border-opacity-25">
+                        <!-- Sin Gluten -->
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="sinGluten" name="salud" value="Sin Gluten" @(isSinGluten ? "checked" : "")>
+                            <label class="form-check-label text-white" for="sinGluten">Sin Gluten (Apto Celíacos)</label>
+                        </div>
+                        <!-- Sin Lactosa -->
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="sinLactosa" name="salud" value="Sin Lactosa" @(isSinLactosa ? "checked" : "")>
+                            <label class="form-check-label text-white" for="sinLactosa">Sin Lactosa (Intolerantes)</label>
+                        </div>
+                        <!-- Vegano -->
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="vegano" name="salud" value="Vegano" @(isVegano ? "checked" : "")>
+                            <label class="form-check-label text-white" for="vegano">Vegano (100% Plant-Based)</label>
                         </div>
                     </div>
+                </div>
 
-                    <!-- 4. Submit Action -->
-                    <button type="submit" class="btn btn-action w-100 py-3 rounded-3 fw-bold fs-5 shadow position-relative overflow-hidden">
-                        <span><i class="bi bi-search me-2"></i>Guardar y Buscar Platos</span>
-                    </button>
-                </form>
-            </div>
+                <!-- 4. Submit Action -->
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5 rounded">
+                    Buscar Recomendaciones
+                </button>
+            </form>
         </div>
     </div>
 </div>
@@ -176,77 +125,70 @@
 {
     var recommendations = ViewBag.TopPicks as List<GastroMatch_Core.Controllers.PlatoRecommendationViewModel>;
     
-    <div class="border-top border-secondary border-opacity-25 pt-5 mt-5 animate-fade-in" id="dashboardSection">
-        <div class="text-center mb-5">
-            <span class="badge bg-primary bg-opacity-25 text-primary-light border border-primary-subtle rounded-pill px-3 py-2 mb-2">
-                <i class="bi bi-award-fill me-1"></i> Resultados del Motor MRP
-            </span>
-            <h2 class="display-5 fw-bold mb-2">Tu Top 3 Personalizado</h2>
-            <p class="text-white-50 max-w-600 mx-auto">
-                Basado en tu presupuesto de $@((int)currentBudget) USD, tus preferencias de cocina y restricciones sanitarias, te recomendamos los siguientes platos:
+    <div class="border-top border-secondary border-opacity-25 pt-5 mt-5" id="dashboardSection">
+        <div class="mb-4">
+            <h3 class="fw-bold text-white">Sugerencias Personalizadas (Top 3)</h3>
+            <p class="text-white-50">
+                Platos recomendados en base a su presupuesto máximo de $@((int)currentBudget) USD, especialidades preferidas y exclusiones de salud.
             </p>
         </div>
 
         @if (recommendations != null && recommendations.Any())
         {
-            <div class="row g-4 justify-content-center">
-                @foreach (var item in recommendations)
-                {
-                    <div class="col-md-4">
-                        <div class="card dish-card h-100 border-0 shadow position-relative overflow-hidden">
-                            <!-- Electric Match Glow Badge inside the Card -->
-                            <div class="match-badge-container">
-                                <div class="match-badge">
-                                    <span class="percent">@item.MatchPercentage%</span>
-                                    <span class="txt">Match</span>
-                                </div>
-                            </div>
-
-                            <div class="card-body p-4 d-flex flex-column justify-content-between position-relative z-1">
-                                <div>
-                                    <span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2 py-1 mb-3 small">
-                                        <i class="bi bi-tag-fill me-1"></i>IdPlato #@item.Plato.IdPlato
-                                    </span>
-                                    
-                                    <h4 class="card-title fw-bold text-white mb-2">@item.Plato.NombrePlato</h4>
-                                    <p class="card-text text-white-50 small mb-4">@item.Plato.Descripcion</p>
-                                    
-                                    <!-- Ingredients tags -->
-                                    <div class="mb-4">
+            <div class="table-responsive rounded border border-secondary border-opacity-25">
+                <table class="table table-dark table-striped table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="text-uppercase text-secondary small border-bottom border-secondary border-opacity-50">
+                            <th scope="col" class="py-3 ps-4">Plato</th>
+                            <th scope="col" class="py-3">Restaurante</th>
+                            <th scope="col" class="py-3 text-end">Precio</th>
+                            <th scope="col" class="py-3 text-end">Distancia</th>
+                            <th scope="col" class="py-3 text-end pe-4">Match</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in recommendations)
+                        {
+                            <tr class="border-bottom border-secondary border-opacity-25">
+                                <td class="py-3 ps-4">
+                                    <div class="fw-bold text-white fs-6">@item.Plato.NombrePlato</div>
+                                    <small class="text-white-50 d-block mt-1">@item.Plato.Descripcion</small>
+                                    <div class="mt-2">
                                         @foreach(var ingr in item.Plato.Ingredientes)
                                         {
-                                            <span class="badge bg-dark border border-secondary border-opacity-50 text-white-50 rounded-pill me-1 mb-1 small">
+                                            <span class="badge bg-secondary bg-opacity-25 text-white-50 rounded-pill me-1 small">
                                                 @ingr.NombreIngr
                                             </span>
                                         }
                                     </div>
-                                </div>
-
-                                <div class="border-top border-secondary border-opacity-25 pt-3 mt-2 d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="icon-circle-small bg-success-subtle text-success">
-                                            <i class="bi bi-geo-alt-fill"></i>
-                                        </div>
-                                        <span class="text-white-50 small">A @item.DistanceKm.ToString("0.0") km</span>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="d-block text-white-50 small">Precio</span>
-                                        <span class="fs-4 fw-bold text-success">$@item.Plato.Precio.ToString("0.00")</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
+                                </td>
+                                <td class="py-3">
+                                    <div class="text-white fw-semibold">@(item.Plato.Restaurante?.NombreLocal ?? "N/A")</div>
+                                    <small class="text-white-50">@(item.Plato.Restaurante?.Direccion ?? "")</small>
+                                </td>
+                                <td class="py-3 text-end fw-bold text-success fs-5">
+                                    $@item.Plato.Precio.ToString("0.00")
+                                </td>
+                                <td class="py-3 text-end text-white-50">
+                                    @item.DistanceKm.ToString("0.0") km
+                                </td>
+                                <td class="py-3 text-end pe-4">
+                                    <span class="badge bg-primary text-white px-3 py-2 fs-6">
+                                        @item.MatchPercentage% Match
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
         else
         {
-            <div class="alert alert-warning border border-warning-subtle bg-warning bg-opacity-10 text-warning text-center p-4 rounded-3 shadow max-w-600 mx-auto" role="alert">
-                <i class="bi bi-exclamation-triangle-fill fs-3 mb-2 d-block"></i>
-                <h5 class="fw-bold">Sin Recomendaciones Coincidentes</h5>
+            <div class="alert alert-warning border border-warning-subtle bg-warning bg-opacity-10 text-warning p-4 rounded" role="alert">
+                <h5 class="fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Sin Coincidencias</h5>
                 <p class="mb-0 small">
-                    Ninguno de nuestros platos disponibles cumple simultáneamente con tu presupuesto, exclusiones de alérgenos y dieta. Intenta ampliar tu presupuesto o flexibilizar los filtros dietéticos.
+                    Ningún plato en la base de datos cumple simultáneamente con sus parámetros de presupuesto, especialidades y exclusiones dietéticas.
                 </p>
             </div>
         }
@@ -258,17 +200,8 @@
         function updateBudgetDisplay(val) {
             document.getElementById('budgetValue').innerText = '$' + val + ' USD';
         }
-
-        function toggleCardState(checkbox) {
-            const card = checkbox.nextElementSibling;
-            if (checkbox.checked) {
-                card.classList.add('active');
-            } else {
-                card.classList.remove('active');
-            }
-        }
         
-        // Auto scroll to Dashboard if it just rendered
+        // Desplazamiento automático al panel de resultados si existen
         document.addEventListener("DOMContentLoaded", function() {
             const db = document.getElementById("dashboardSection");
             if (db) {
@@ -278,213 +211,8 @@
     </script>
 }
 
-<!-- Custom Styles for index view -->
 <style>
-    .text-gradient {
-        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f43f5e 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
-    .text-primary-light {
-        color: #c084fc;
-    }
     .min-vh-75 {
         min-height: 75vh;
-    }
-    .max-w-600 {
-        max-width: 600px;
-    }
-    
-    /* Premium card with glassmorphism and soft interior highlights */
-    .premium-card {
-        background: rgba(22, 21, 30, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 20px;
-    }
-    .card-glow {
-        position: absolute;
-        top: -150px;
-        right: -150px;
-        width: 350px;
-        height: 350px;
-        background: radial-gradient(circle, rgba(167, 139, 250, 0.15) 0%, rgba(244, 63, 94, 0.0) 70%);
-        filter: blur(40px);
-        pointer-events: none;
-        z-index: 0;
-    }
-    
-    /* Circular custom icon */
-    .icon-circle {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .icon-circle-small {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .bg-primary-subtle {
-        background: rgba(167, 139, 250, 0.15) !important;
-    }
-    .text-primary {
-        color: #a78bfa !important;
-    }
-    .bg-warning-subtle {
-        background: rgba(234, 179, 8, 0.15) !important;
-    }
-    .text-warning {
-        color: #eab308 !important;
-    }
-    .bg-success-subtle {
-        background: rgba(16, 185, 129, 0.15) !important;
-    }
-    .text-success {
-        color: #10b981 !important;
-    }
-    
-    /* Custom input range slider */
-    .custom-range::-webkit-slider-runnable-track {
-        background: rgba(255, 255, 255, 0.1);
-        height: 8px;
-        border-radius: 4px;
-    }
-    .custom-range::-webkit-slider-thumb {
-        background: linear-gradient(135deg, #a78bfa, #ec4899);
-        border: 2px solid #ffffff;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        margin-top: -6px;
-        cursor: pointer;
-        box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
-        transition: transform 0.15s ease-in-out;
-    }
-    .custom-range::-webkit-slider-thumb:hover {
-        transform: scale(1.2);
-    }
-    
-    /* Interactive Card Checkboxes */
-    .custom-card-checkbox {
-        cursor: pointer;
-        display: block;
-        width: 100%;
-        user-select: none;
-    }
-    .card-check-content {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.07) !important;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .card-check-content:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.2) !important;
-        transform: translateY(-3px);
-    }
-    .card-check-content.active {
-        background: rgba(167, 139, 250, 0.08) !important;
-        border-color: rgba(167, 139, 250, 0.6) !important;
-        box-shadow: 0 5px 15px rgba(167, 139, 250, 0.15);
-    }
-    
-    /* Custom switch styling */
-    .custom-switch-input {
-        cursor: pointer;
-        width: 3em !important;
-        height: 1.5em !important;
-    }
-    .custom-switch-input:checked {
-        background-color: #a78bfa !important;
-        border-color: #8b5cf6 !important;
-        box-shadow: 0 0 8px rgba(167, 139, 250, 0.5) !important;
-    }
-    
-    /* Premium Action Button with gradient and hover glow */
-    .btn-action {
-        background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f43f5e 100%);
-        border: none;
-        color: white;
-        transition: all 0.3s ease;
-    }
-    .btn-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
-        opacity: 0.95;
-    }
-    .btn-action:active {
-        transform: translateY(1px);
-    }
-    
-    /* Dish Recommendation Cards */
-    .dish-card {
-        background: rgba(26, 24, 36, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        border-radius: 16px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .dish-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(96, 165, 250, 0.4) !important;
-        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15) !important;
-    }
-    
-    /* Electric Blue Match Badge */
-    .match-badge-container {
-        position: absolute;
-        top: -12px;
-        right: -12px;
-        width: 80px;
-        height: 80px;
-        z-index: 10;
-    }
-    .match-badge {
-        background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border: 4px solid #14121a;
-        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.5);
-    }
-    .match-badge .percent {
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: #14121a;
-        line-height: 1;
-    }
-    .match-badge .txt {
-        font-size: 0.55rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #14121a;
-        letter-spacing: 0.5px;
-        margin-top: 1px;
-    }
-
-    /* Animations */
-    .animate-fade-in {
-        animation: fadeIn 0.8s ease-out;
-    }
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(25px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
     }
 </style>

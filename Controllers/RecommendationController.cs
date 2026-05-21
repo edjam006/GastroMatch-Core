@@ -38,16 +38,8 @@ namespace GastroMatch_Core.Controllers
             {
                 decimal matchPercentage = _recommendationService.CalculateMatch(preferencias, plato) * 100m;
                 
-                // Simulación realista de distancia de entrega (ej. 1.2 km, 1.8 km, 2.5 km)
-                double simulatedDistance = plato.IdPlato switch
-                {
-                    1 => 1.2,
-                    2 => 1.8,
-                    3 => 0.8,
-                    4 => 2.3,
-                    5 => 1.5,
-                    _ => 1.0
-                };
+                // Distancia de entrega en kilómetros calculada de forma dinámica
+                double simulatedDistance = 0.6 + (plato.IdPlato % 4) * 0.5;
 
                 resultList.Add(new PlatoRecommendationViewModel
                 {
