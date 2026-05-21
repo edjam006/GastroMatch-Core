@@ -1,0 +1,345 @@
+@{
+    ViewData["Title"] = "Panel de Preferencias";
+}
+
+<div class="row align-items-center justify-content-center min-vh-75 py-4 g-5">
+    <!-- Left Column: Branding and Info -->
+    <div class="col-lg-5 text-center text-lg-start animate-fade-in">
+        <span class="badge bg-danger bg-opacity-25 text-danger border border-danger-subtle rounded-pill px-3 py-2 mb-3">
+            <i class="bi bi-stars me-1 text-danger"></i> Experiencia Inteligente
+        </span>
+        <h1 class="display-4 fw-bold mb-3 tracking-tight">
+            Descubre tu <span class="text-gradient">Fórmula Gastronómica</span>
+        </h1>
+        <p class="lead text-white-50 mb-4">
+            Ajusta tu perfil en pocos segundos. GastroMatch procesa tu presupuesto, gustos y salud para conectarte con el plato ideal y el restaurante perfecto cerca de ti.
+        </p>
+        <div class="d-flex flex-column gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-circle bg-primary-subtle text-primary">
+                    <i class="bi bi-currency-dollar fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 text-white fw-semibold">Control Total de Gastos</h6>
+                    <span class="text-white-50 small">Sin sorpresas en tu cuenta final.</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-circle bg-warning-subtle text-warning">
+                    <i class="bi bi-shield-check fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 text-white fw-semibold">Seguridad en Alérgenos</h6>
+                    <span class="text-white-50 small">Filtros certificados para tu salud.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Interactive Preferences Card -->
+    <div class="col-lg-7">
+        <div class="card premium-card border-0 shadow-lg position-relative overflow-hidden">
+            <!-- Decorative colored ambient light inside the card -->
+            <div class="card-glow"></div>
+            
+            <div class="card-body p-4 p-md-5 position-relative z-1">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary pb-3">
+                    <div>
+                        <h4 class="card-title fw-bold text-white mb-1">
+                            <i class="bi bi-sliders text-primary me-2"></i>Configuración de Preferencias
+                        </h4>
+                        <p class="card-subtitle text-white-50 small">Define tus gustos, presupuesto y restricciones</p>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 rounded-pill small">
+                        <i class="bi bi-shield-fill-check me-1"></i>Perfil Activo
+                    </span>
+                </div>
+
+                <form id="preferencesForm" onsubmit="handlePreferencesSubmit(event)">
+                    <!-- 1. Presupuesto (Slider Funcional) -->
+                    <div class="mb-4 pb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label for="budgetRange" class="form-label text-white fw-semibold mb-0">
+                                <i class="bi bi-currency-exchange text-info me-2"></i>Presupuesto Máximo
+                            </label>
+                            <span class="badge bg-primary bg-opacity-25 text-primary-light border border-primary-subtle fs-6 px-3 py-1 rounded-pill fw-bold" id="budgetValue">
+                                $85 USD
+                            </span>
+                        </div>
+                        <input type="range" class="form-range custom-range" id="budgetRange" min="15" max="250" step="5" value="85" oninput="updateBudgetDisplay(this.value)">
+                        <div class="d-flex justify-content-between text-white-50 small px-1">
+                            <span>$15 USD</span>
+                            <span>$130 USD</span>
+                            <span>$250 USD</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Mis Gustos (Checkboxes Interactivos en Tarjeta) -->
+                    <div class="mb-4">
+                        <label class="form-label text-white fw-semibold mb-3">
+                            <i class="bi bi-heart-fill text-danger me-2"></i>Mis Gustos Culinarios
+                        </label>
+                        <div class="row g-3">
+                            <!-- Italiana -->
+                            <div class="col-md-4">
+                                <label class="custom-card-checkbox">
+                                    <input type="checkbox" name="tipoCocina" value="Italiana" class="d-none" checked onchange="toggleCardState(this)">
+                                    <div class="card-check-content text-center p-3 rounded-3 active border">
+                                        <i class="bi bi-egg-fried fs-2 text-warning mb-2 d-block"></i>
+                                        <span class="d-block fw-semibold text-white">Italiana</span>
+                                        <span class="text-white-50 small d-block mt-1">Pizzas y Pastas</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <!-- Mexicana -->
+                            <div class="col-md-4">
+                                <label class="custom-card-checkbox">
+                                    <input type="checkbox" name="tipoCocina" value="Mexicana" class="d-none" onchange="toggleCardState(this)">
+                                    <div class="card-check-content text-center p-3 rounded-3 border">
+                                        <i class="bi bi-fire fs-2 text-danger mb-2 d-block"></i>
+                                        <span class="d-block fw-semibold text-white">Mexicana</span>
+                                        <span class="text-white-50 small d-block mt-1">Tacos y Picante</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <!-- Asiática -->
+                            <div class="col-md-4">
+                                <label class="custom-card-checkbox">
+                                    <input type="checkbox" name="tipoCocina" value="Asiática" class="d-none" onchange="toggleCardState(this)">
+                                    <div class="card-check-content text-center p-3 rounded-3 border">
+                                        <i class="bi bi-water fs-2 text-info mb-2 d-block"></i>
+                                        <span class="d-block fw-semibold text-white">Asiática</span>
+                                        <span class="text-white-50 small d-block mt-1">Ramen y Sushi</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Salud y Alergias (Switches Bootstrap 5) -->
+                    <div class="mb-4 pb-2">
+                        <label class="form-label text-white fw-semibold mb-2">
+                            <i class="bi bi-heart-pulse-fill text-success me-2"></i>Salud y Restricciones Dietéticas
+                        </label>
+                        <div class="p-3 rounded-3 bg-dark bg-opacity-40 border border-secondary border-opacity-50">
+                            <!-- Sin Gluten -->
+                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2 border-bottom border-secondary border-opacity-25">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinGluten" name="salud" value="Sin Gluten">
+                                    <label class="form-check-label text-white-50 ps-2" for="sinGluten">Sin Gluten</label>
+                                </div>
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle rounded-pill px-2 py-1 small">Apto Celíacos</span>
+                            </div>
+                            <!-- Sin Lactosa -->
+                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2 border-bottom border-secondary border-opacity-25">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinLactosa" name="salud" value="Sin Lactosa">
+                                    <label class="form-check-label text-white-50 ps-2" for="sinLactosa">Sin Lactosa</label>
+                                </div>
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle rounded-pill px-2 py-1 small">Intolerancia</span>
+                            </div>
+                            <!-- Vegano -->
+                            <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="vegano" name="salud" value="Vegano">
+                                    <label class="form-check-label text-white-50 ps-2" for="vegano">Vegano</label>
+                                </div>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2 py-1 small">100% Plant-Based</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Submit Action -->
+                    <button type="submit" class="btn btn-action w-100 py-3 rounded-3 fw-bold fs-5 shadow position-relative overflow-hidden">
+                        <span><i class="bi bi-search me-2"></i>Guardar y Buscar Platos</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateBudgetDisplay(val) {
+            document.getElementById('budgetValue').innerText = '$' + val + ' USD';
+        }
+
+        function toggleCardState(checkbox) {
+            const card = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        }
+
+        function handlePreferencesSubmit(e) {
+            e.preventDefault();
+            const budget = document.getElementById('budgetRange').value;
+            const selectedCuisines = Array.from(document.querySelectorAll('input[name="tipoCocina"]:checked')).map(c => c.value);
+            const selectedHealth = Array.from(document.querySelectorAll('input[name="salud"]:checked')).map(h => h.value);
+            
+            // Notification or visual success effect
+            const btn = document.querySelector('.btn-action');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span><i class="bi bi-check-circle-fill me-2 text-success"></i>¡Preferencias Guardadas con Éxito!</span>';
+            btn.classList.add('btn-success-active');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('btn-success-active');
+            }, 3000);
+            
+            console.log("Preferencias Guardadas:", { budget, selectedCuisines, selectedHealth });
+        }
+    </script>
+}
+
+<!-- Custom Styles for index view -->
+<style>
+    .text-gradient {
+        background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f43f5e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    .text-primary-light {
+        color: #c084fc;
+    }
+    .min-vh-75 {
+        min-height: 75vh;
+    }
+    
+    /* Premium card with glassmorphism and soft interior highlights */
+    .premium-card {
+        background: rgba(22, 21, 30, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 20px;
+    }
+    .card-glow {
+        position: absolute;
+        top: -150px;
+        right: -150px;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(167, 139, 250, 0.15) 0%, rgba(244, 63, 94, 0.0) 70%);
+        filter: blur(40px);
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    /* Circular custom icon */
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .bg-primary-subtle {
+        background: rgba(167, 139, 250, 0.15) !important;
+    }
+    .text-primary {
+        color: #a78bfa !important;
+    }
+    .bg-warning-subtle {
+        background: rgba(234, 179, 8, 0.15) !important;
+    }
+    .text-warning {
+        color: #eab308 !important;
+    }
+    
+    /* Custom input range slider */
+    .custom-range::-webkit-slider-runnable-track {
+        background: rgba(255, 255, 255, 0.1);
+        height: 8px;
+        border-radius: 4px;
+    }
+    .custom-range::-webkit-slider-thumb {
+        background: linear-gradient(135deg, #a78bfa, #ec4899);
+        border: 2px solid #ffffff;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        margin-top: -6px;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+        transition: transform 0.15s ease-in-out;
+    }
+    .custom-range::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+    
+    /* Interactive Card Checkboxes */
+    .custom-card-checkbox {
+        cursor: pointer;
+        display: block;
+        width: 100%;
+        user-select: none;
+    }
+    .card-check-content {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.07) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-check-content:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        transform: translateY(-3px);
+    }
+    .card-check-content.active {
+        background: rgba(167, 139, 250, 0.08) !important;
+        border-color: rgba(167, 139, 250, 0.6) !important;
+        box-shadow: 0 5px 15px rgba(167, 139, 250, 0.15);
+    }
+    
+    /* Custom switch styling */
+    .custom-switch-input {
+        cursor: pointer;
+        width: 3em !important;
+        height: 1.5em !important;
+    }
+    .custom-switch-input:checked {
+        background-color: #a78bfa !important;
+        border-color: #8b5cf6 !important;
+        box-shadow: 0 0 8px rgba(167, 139, 250, 0.5) !important;
+    }
+    
+    /* Premium Action Button with gradient and hover glow */
+    .btn-action {
+        background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f43f5e 100%);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        opacity: 0.95;
+    }
+    .btn-action:active {
+        transform: translateY(1px);
+    }
+    .btn-success-active {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
