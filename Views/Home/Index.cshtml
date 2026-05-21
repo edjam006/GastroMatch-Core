@@ -1,5 +1,17 @@
 @{
     ViewData["Title"] = "Panel de Preferencias";
+    
+    // Obtenemos las preferencias cargadas previamente si existen
+    var prefs = ViewBag.Preferencias as GastroMatch_Core.Models.PreferenciaUsuario;
+    decimal currentBudget = prefs != null ? prefs.RangoPrecioMax : 85m;
+    
+    bool hasItaliana = prefs == null || (prefs.TipoCocinaFavorita != null && prefs.TipoCocinaFavorita.Contains("Italiana"));
+    bool hasMexicana = prefs != null && prefs.TipoCocinaFavorita != null && prefs.TipoCocinaFavorita.Contains("Mexicana");
+    bool hasAsiatica = prefs != null && prefs.TipoCocinaFavorita != null && prefs.TipoCocinaFavorita.Contains("Asiática");
+    
+    bool isSinGluten = prefs != null && ((prefs.Alergias != null && prefs.Alergias.Contains("Sin Gluten")) || (prefs.RestriccionesDieteticas != null && prefs.RestriccionesDieteticas.Contains("Sin Gluten")));
+    bool isSinLactosa = prefs != null && ((prefs.Alergias != null && prefs.Alergias.Contains("Sin Lactosa")) || (prefs.RestriccionesDieteticas != null && prefs.RestriccionesDieteticas.Contains("Sin Lactosa")));
+    bool isVegano = prefs != null && ((prefs.Alergias != null && prefs.Alergias.Contains("Vegano")) || (prefs.RestriccionesDieteticas != null && prefs.RestriccionesDieteticas.Contains("Vegano")));
 }
 
 <div class="row align-items-center justify-content-center min-vh-75 py-4 g-5">
@@ -55,7 +67,7 @@
                     </span>
                 </div>
 
-                <form id="preferencesForm" onsubmit="handlePreferencesSubmit(event)">
+                <form asp-controller="Recommendation" asp-action="ProcesarPreferencias" method="post" id="preferencesForm">
                     <!-- 1. Presupuesto (Slider Funcional) -->
                     <div class="mb-4 pb-2">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -63,10 +75,10 @@
                                 <i class="bi bi-currency-exchange text-info me-2"></i>Presupuesto Máximo
                             </label>
                             <span class="badge bg-primary bg-opacity-25 text-primary-light border border-primary-subtle fs-6 px-3 py-1 rounded-pill fw-bold" id="budgetValue">
-                                $85 USD
+                                $@((int)currentBudget) USD
                             </span>
                         </div>
-                        <input type="range" class="form-range custom-range" id="budgetRange" min="15" max="250" step="5" value="85" oninput="updateBudgetDisplay(this.value)">
+                        <input type="range" class="form-range custom-range" id="budgetRange" name="RangoPrecioMax" min="15" max="250" step="5" value="@((int)currentBudget)" oninput="updateBudgetDisplay(this.value)">
                         <div class="d-flex justify-content-between text-white-50 small px-1">
                             <span>$15 USD</span>
                             <span>$130 USD</span>
@@ -83,8 +95,8 @@
                             <!-- Italiana -->
                             <div class="col-md-4">
                                 <label class="custom-card-checkbox">
-                                    <input type="checkbox" name="tipoCocina" value="Italiana" class="d-none" checked onchange="toggleCardState(this)">
-                                    <div class="card-check-content text-center p-3 rounded-3 active border">
+                                    <input type="checkbox" name="tipoCocina" value="Italiana" class="d-none" @(hasItaliana ? "checked" : "") onchange="toggleCardState(this)">
+                                    <div class="card-check-content text-center p-3 rounded-3 @(hasItaliana ? "active" : "") border">
                                         <i class="bi bi-egg-fried fs-2 text-warning mb-2 d-block"></i>
                                         <span class="d-block fw-semibold text-white">Italiana</span>
                                         <span class="text-white-50 small d-block mt-1">Pizzas y Pastas</span>
@@ -94,8 +106,8 @@
                             <!-- Mexicana -->
                             <div class="col-md-4">
                                 <label class="custom-card-checkbox">
-                                    <input type="checkbox" name="tipoCocina" value="Mexicana" class="d-none" onchange="toggleCardState(this)">
-                                    <div class="card-check-content text-center p-3 rounded-3 border">
+                                    <input type="checkbox" name="tipoCocina" value="Mexicana" class="d-none" @(hasMexicana ? "checked" : "") onchange="toggleCardState(this)">
+                                    <div class="card-check-content text-center p-3 rounded-3 @(hasMexicana ? "active" : "") border">
                                         <i class="bi bi-fire fs-2 text-danger mb-2 d-block"></i>
                                         <span class="d-block fw-semibold text-white">Mexicana</span>
                                         <span class="text-white-50 small d-block mt-1">Tacos y Picante</span>
@@ -105,8 +117,8 @@
                             <!-- Asiática -->
                             <div class="col-md-4">
                                 <label class="custom-card-checkbox">
-                                    <input type="checkbox" name="tipoCocina" value="Asiática" class="d-none" onchange="toggleCardState(this)">
-                                    <div class="card-check-content text-center p-3 rounded-3 border">
+                                    <input type="checkbox" name="tipoCocina" value="Asiática" class="d-none" @(hasAsiatica ? "checked" : "") onchange="toggleCardState(this)">
+                                    <div class="card-check-content text-center p-3 rounded-3 @(hasAsiatica ? "active" : "") border">
                                         <i class="bi bi-water fs-2 text-info mb-2 d-block"></i>
                                         <span class="d-block fw-semibold text-white">Asiática</span>
                                         <span class="text-white-50 small d-block mt-1">Ramen y Sushi</span>
@@ -125,7 +137,7 @@
                             <!-- Sin Gluten -->
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2 border-bottom border-secondary border-opacity-25">
                                 <div class="d-flex align-items-center gap-2">
-                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinGluten" name="salud" value="Sin Gluten">
+                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinGluten" name="salud" value="Sin Gluten" @(isSinGluten ? "checked" : "")>
                                     <label class="form-check-label text-white-50 ps-2" for="sinGluten">Sin Gluten</label>
                                 </div>
                                 <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle rounded-pill px-2 py-1 small">Apto Celíacos</span>
@@ -133,7 +145,7 @@
                             <!-- Sin Lactosa -->
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2 border-bottom border-secondary border-opacity-25">
                                 <div class="d-flex align-items-center gap-2">
-                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinLactosa" name="salud" value="Sin Lactosa">
+                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="sinLactosa" name="salud" value="Sin Lactosa" @(isSinLactosa ? "checked" : "")>
                                     <label class="form-check-label text-white-50 ps-2" for="sinLactosa">Sin Lactosa</label>
                                 </div>
                                 <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle rounded-pill px-2 py-1 small">Intolerancia</span>
@@ -141,7 +153,7 @@
                             <!-- Vegano -->
                             <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0 py-2">
                                 <div class="d-flex align-items-center gap-2">
-                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="vegano" name="salud" value="Vegano">
+                                    <input class="form-check-input ms-0 custom-switch-input" type="checkbox" role="switch" id="vegano" name="salud" value="Vegano" @(isVegano ? "checked" : "")>
                                     <label class="form-check-label text-white-50 ps-2" for="vegano">Vegano</label>
                                 </div>
                                 <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2 py-1 small">100% Plant-Based</span>
@@ -159,6 +171,88 @@
     </div>
 </div>
 
+<!-- PANTALLA 2: Dashboard de Sugerencias Personalizadas -->
+@if (ViewBag.TopPicks != null)
+{
+    var recommendations = ViewBag.TopPicks as List<GastroMatch_Core.Controllers.PlatoRecommendationViewModel>;
+    
+    <div class="border-top border-secondary border-opacity-25 pt-5 mt-5 animate-fade-in" id="dashboardSection">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary bg-opacity-25 text-primary-light border border-primary-subtle rounded-pill px-3 py-2 mb-2">
+                <i class="bi bi-award-fill me-1"></i> Resultados del Motor MRP
+            </span>
+            <h2 class="display-5 fw-bold mb-2">Tu Top 3 Personalizado</h2>
+            <p class="text-white-50 max-w-600 mx-auto">
+                Basado en tu presupuesto de $@((int)currentBudget) USD, tus preferencias de cocina y restricciones sanitarias, te recomendamos los siguientes platos:
+            </p>
+        </div>
+
+        @if (recommendations != null && recommendations.Any())
+        {
+            <div class="row g-4 justify-content-center">
+                @foreach (var item in recommendations)
+                {
+                    <div class="col-md-4">
+                        <div class="card dish-card h-100 border-0 shadow position-relative overflow-hidden">
+                            <!-- Electric Match Glow Badge inside the Card -->
+                            <div class="match-badge-container">
+                                <div class="match-badge">
+                                    <span class="percent">@item.MatchPercentage%</span>
+                                    <span class="txt">Match</span>
+                                </div>
+                            </div>
+
+                            <div class="card-body p-4 d-flex flex-column justify-content-between position-relative z-1">
+                                <div>
+                                    <span class="badge bg-secondary bg-opacity-50 text-white rounded-pill px-2 py-1 mb-3 small">
+                                        <i class="bi bi-tag-fill me-1"></i>IdPlato #@item.Plato.IdPlato
+                                    </span>
+                                    
+                                    <h4 class="card-title fw-bold text-white mb-2">@item.Plato.NombrePlato</h4>
+                                    <p class="card-text text-white-50 small mb-4">@item.Plato.Descripcion</p>
+                                    
+                                    <!-- Ingredients tags -->
+                                    <div class="mb-4">
+                                        @foreach(var ingr in item.Plato.Ingredientes)
+                                        {
+                                            <span class="badge bg-dark border border-secondary border-opacity-50 text-white-50 rounded-pill me-1 mb-1 small">
+                                                @ingr.NombreIngr
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="border-top border-secondary border-opacity-25 pt-3 mt-2 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="icon-circle-small bg-success-subtle text-success">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                        </div>
+                                        <span class="text-white-50 small">A @item.DistanceKm.ToString("0.0") km</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="d-block text-white-50 small">Precio</span>
+                                        <span class="fs-4 fw-bold text-success">$@item.Plato.Precio.ToString("0.00")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning border border-warning-subtle bg-warning bg-opacity-10 text-warning text-center p-4 rounded-3 shadow max-w-600 mx-auto" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-3 mb-2 d-block"></i>
+                <h5 class="fw-bold">Sin Recomendaciones Coincidentes</h5>
+                <p class="mb-0 small">
+                    Ninguno de nuestros platos disponibles cumple simultáneamente con tu presupuesto, exclusiones de alérgenos y dieta. Intenta ampliar tu presupuesto o flexibilizar los filtros dietéticos.
+                </p>
+            </div>
+        }
+    </div>
+}
+
 @section Scripts {
     <script>
         function updateBudgetDisplay(val) {
@@ -173,26 +267,14 @@
                 card.classList.remove('active');
             }
         }
-
-        function handlePreferencesSubmit(e) {
-            e.preventDefault();
-            const budget = document.getElementById('budgetRange').value;
-            const selectedCuisines = Array.from(document.querySelectorAll('input[name="tipoCocina"]:checked')).map(c => c.value);
-            const selectedHealth = Array.from(document.querySelectorAll('input[name="salud"]:checked')).map(h => h.value);
-            
-            // Notification or visual success effect
-            const btn = document.querySelector('.btn-action');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<span><i class="bi bi-check-circle-fill me-2 text-success"></i>¡Preferencias Guardadas con Éxito!</span>';
-            btn.classList.add('btn-success-active');
-            
-            setTimeout(() => {
-                btn.innerHTML = originalHtml;
-                btn.classList.remove('btn-success-active');
-            }, 3000);
-            
-            console.log("Preferencias Guardadas:", { budget, selectedCuisines, selectedHealth });
-        }
+        
+        // Auto scroll to Dashboard if it just rendered
+        document.addEventListener("DOMContentLoaded", function() {
+            const db = document.getElementById("dashboardSection");
+            if (db) {
+                db.scrollIntoView({ behavior: "smooth" });
+            }
+        });
     </script>
 }
 
@@ -209,6 +291,9 @@
     }
     .min-vh-75 {
         min-height: 75vh;
+    }
+    .max-w-600 {
+        max-width: 600px;
     }
     
     /* Premium card with glassmorphism and soft interior highlights */
@@ -239,6 +324,15 @@
         justify-content: center;
         flex-shrink: 0;
     }
+    .icon-circle-small {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
     .bg-primary-subtle {
         background: rgba(167, 139, 250, 0.15) !important;
     }
@@ -250,6 +344,12 @@
     }
     .text-warning {
         color: #eab308 !important;
+    }
+    .bg-success-subtle {
+        background: rgba(16, 185, 129, 0.15) !important;
+    }
+    .text-success {
+        color: #10b981 !important;
     }
     
     /* Custom input range slider */
@@ -323,9 +423,54 @@
     .btn-action:active {
         transform: translateY(1px);
     }
-    .btn-success-active {
-        background: linear-gradient(135deg, #10b981, #059669) !important;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+    
+    /* Dish Recommendation Cards */
+    .dish-card {
+        background: rgba(26, 24, 36, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .dish-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(96, 165, 250, 0.4) !important;
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15) !important;
+    }
+    
+    /* Electric Blue Match Badge */
+    .match-badge-container {
+        position: absolute;
+        top: -12px;
+        right: -12px;
+        width: 80px;
+        height: 80px;
+        z-index: 10;
+    }
+    .match-badge {
+        background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid #14121a;
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.5);
+    }
+    .match-badge .percent {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #14121a;
+        line-height: 1;
+    }
+    .match-badge .txt {
+        font-size: 0.55rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #14121a;
+        letter-spacing: 0.5px;
+        margin-top: 1px;
     }
 
     /* Animations */
@@ -335,7 +480,7 @@
     @@keyframes fadeIn {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(25px);
         }
         to {
             opacity: 1;
