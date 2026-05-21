@@ -21,38 +21,34 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at top right, #1d1b26, #0e0d12);
-            color: #f3f4f6;
+            background-color: #121212;
+            color: #e0e0e0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
         .navbar-brand-glow {
             font-weight: 700;
-            background: linear-gradient(135deg, #a78bfa, #f43f5e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #ffffff !important;
             font-size: 1.5rem;
             letter-spacing: -0.5px;
         }
-        .glass-nav {
-            background: rgba(18, 17, 24, 0.75) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        .flat-nav {
+            background-color: #1e1e1e !important;
+            border-bottom: 1px solid #2d2d2d;
         }
-        .footer-premium {
-            background: rgba(14, 13, 18, 0.9);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        .footer-flat {
+            background-color: #1e1e1e;
+            border-top: 1px solid #2d2d2d;
             margin-top: auto;
         }
     </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-dark glass-nav mb-4 py-3">
+        <nav class="navbar navbar-expand-sm navbar-dark flat-nav mb-4 py-3">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-fire text-danger me-2 fs-4"></i>
                     <span class="navbar-brand-glow">GastroMatch</span>
                 </a>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -82,7 +78,7 @@
         </main>
     </div>
 
-    <footer class="footer-premium text-muted py-4 mt-5">
+    <footer class="footer-flat text-muted py-4 mt-5">
         <div class="container text-center">
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
                 <p class="mb-0 text-white-50 small">&copy; 2026 GastroMatch - Todos los derechos reservados.</p>

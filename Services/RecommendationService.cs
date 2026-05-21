@@ -1,12 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using GastroMatch_Core.Data;
 using GastroMatch_Core.Models;
 
 namespace GastroMatch_Core.Services
 {
     public class RecommendationService : IRecommendationService
     {
+        private readonly AppDbContext _context;
+
+        public RecommendationService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public decimal CalculateMatch(PreferenciaUsuario preferencia, Plato plato)
         {
             if (preferencia == null || plato == null)
@@ -66,10 +75,10 @@ namespace GastroMatch_Core.Services
                 plato.Descripcion.Contains("salmón", StringComparison.OrdinalIgnoreCase) ||
                 plato.Descripcion.Contains("res", StringComparison.OrdinalIgnoreCase) ||
                 plato.Ingredientes.Any(i => i.NombreIngr.Contains("Pollo", StringComparison.OrdinalIgnoreCase) ||
-                                            i.NombreIngr.Contains("Cerdo", StringComparison.OrdinalIgnoreCase) ||
-                                            i.NombreIngr.Contains("Carne", StringComparison.OrdinalIgnoreCase) ||
-                                            i.NombreIngr.Contains("Salmón", StringComparison.OrdinalIgnoreCase) ||
-                                            i.NombreIngr.Contains("Res", StringComparison.OrdinalIgnoreCase));
+                                             i.NombreIngr.Contains("Cerdo", StringComparison.OrdinalIgnoreCase) ||
+                                             i.NombreIngr.Contains("Carne", StringComparison.OrdinalIgnoreCase) ||
+                                             i.NombreIngr.Contains("Salmón", StringComparison.OrdinalIgnoreCase) ||
+                                             i.NombreIngr.Contains("Res", StringComparison.OrdinalIgnoreCase));
 
             // Evaluamos descartes drásticos de salud
             if (userHasGlutenSensitivity && platoContainsGluten) return 0.0m;
@@ -91,7 +100,7 @@ namespace GastroMatch_Core.Services
                 }
             }
 
-            // Filtro general por coincidencias de restricciones dietéticas adicionales
+            // Filtro general por restricciones dietéticas adicionales
             if (!string.IsNullOrEmpty(preferencia.RestriccionesDieteticas))
             {
                 var restrictions = preferencia.RestriccionesDieteticas.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -115,14 +124,17 @@ namespace GastroMatch_Core.Services
                 if (favCuisine.Contains("Italiana", StringComparison.OrdinalIgnoreCase) && 
                     (plato.NombrePlato.Contains("Pasta", StringComparison.OrdinalIgnoreCase) || 
                      plato.NombrePlato.Contains("César", StringComparison.OrdinalIgnoreCase) || 
+                     plato.NombrePlato.Contains("Pizza", StringComparison.OrdinalIgnoreCase) || 
                      plato.Descripcion.Contains("Alfredo", StringComparison.OrdinalIgnoreCase) || 
                      plato.Descripcion.Contains("parmesano", StringComparison.OrdinalIgnoreCase) ||
-                     plato.Descripcion.Contains("italiana", StringComparison.OrdinalIgnoreCase)))
+                     plato.Descripcion.Contains("italiana", StringComparison.OrdinalIgnoreCase) ||
+                     plato.Descripcion.Contains("margherita", StringComparison.OrdinalIgnoreCase)))
                 {
                     matchesCuisine = true;
                 }
                 else if (favCuisine.Contains("Mexicana", StringComparison.OrdinalIgnoreCase) && 
                     (plato.NombrePlato.Contains("Tacos", StringComparison.OrdinalIgnoreCase) || 
+                     plato.NombrePlato.Contains("Burrito", StringComparison.OrdinalIgnoreCase) || 
                      plato.Descripcion.Contains("cerdo marinado", StringComparison.OrdinalIgnoreCase) || 
                      plato.Descripcion.Contains("tortillas", StringComparison.OrdinalIgnoreCase) ||
                      plato.Descripcion.Contains("mexicana", StringComparison.OrdinalIgnoreCase)))
@@ -131,6 +143,8 @@ namespace GastroMatch_Core.Services
                 }
                 else if (favCuisine.Contains("Asiática", StringComparison.OrdinalIgnoreCase) && 
                     (plato.NombrePlato.Contains("Sushi", StringComparison.OrdinalIgnoreCase) || 
+                     plato.NombrePlato.Contains("Ramen", StringComparison.OrdinalIgnoreCase) || 
+                     plato.NombrePlato.Contains("Thai", StringComparison.OrdinalIgnoreCase) || 
                      plato.Descripcion.Contains("nori", StringComparison.OrdinalIgnoreCase) || 
                      plato.Descripcion.Contains("sushi", StringComparison.OrdinalIgnoreCase) ||
                      plato.Descripcion.Contains("asiático", StringComparison.OrdinalIgnoreCase)))
@@ -153,92 +167,15 @@ namespace GastroMatch_Core.Services
             if (preferencias == null)
                 return new List<Plato>();
 
-            // Instanciamos 5 platos simulados altamente realistas y detallados
-            var mockPlates = new List<Plato>
-            {
-                new Plato
-                {
-                    IdPlato = 1,
-                    NombrePlato = "Tacos Al Pastor",
-                    Precio = 8.50m,
-                    Calorias = 650,
-                    Descripcion = "Deliciosos tacos de cerdo marinado con piña y cilantro en tortillas de maíz tradicionales. Auténtico sabor mexicano.",
-                    RestauranteId = 1,
-                    Ingredientes = new List<Ingrediente>
-                    {
-                        new Ingrediente { IdIngr = 1, NombreIngr = "Cerdo", EsAlergeno = false },
-                        new Ingrediente { IdIngr = 2, NombreIngr = "Piña", EsAlergeno = false },
-                        new Ingrediente { IdIngr = 3, NombreIngr = "Cilantro", EsAlergeno = false },
-                        new Ingrediente { IdIngr = 4, NombreIngr = "Tortilla de maíz", EsAlergeno = false }
-                    }
-                },
-                new Plato
-                {
-                    IdPlato = 2,
-                    NombrePlato = "Sushi Roll Dragon",
-                    Precio = 12.00m,
-                    Calorias = 450,
-                    Descripcion = "Rollo de sushi premium con salmón fresco, aguacate, queso crema y algas nori. Exquisitez asiática.",
-                    RestauranteId = 2,
-                    Ingredientes = new List<Ingrediente>
-                    {
-                        new Ingrediente { IdIngr = 5, NombreIngr = "Salmón", EsAlergeno = false },
-                        new Ingrediente { IdIngr = 6, NombreIngr = "Aguacate", EsAlergeno = false },
-                        new Ingrediente { IdIngr = 7, NombreIngr = "Queso crema (Lactosa)", EsAlergeno = true },
-                        new Ingrediente { IdIngr = 8, NombreIngr = "Alga nori", EsAlergeno = false }
-                    }
-                },
-                new Plato
-                {
-                    IdPlato = 3,
-                    NombrePlato = "Ensalada César con Pollo",
-                    Precio = 7.00m,
-                    Calorias = 320,
-                    Descripcion = "Lechuga romana fresca, crutones crujientes, aderezo César y queso parmesano. Ligereza de la cocina italiana.",
-                    RestauranteId = 3,
-                    Ingredientes = new List<Ingrediente>
-                    {
-                        new Ingrediente { IdIngr = 9, NombreIngr = "Lechuga", EsAlergeno = false },
-                        new Ingrediente { IdIngr = 10, NombreIngr = "Crutones (Gluten)", EsAlergeno = true },
-                        new Ingrediente { IdIngr = 11, NombreIngr = "Queso parmesano (Lactosa)", EsAlergeno = true },
-                        new Ingrediente { IdIngr = 12, NombreIngr = "Aderezo César", EsAlergeno = false }
-                    }
-                },
-                new Plato
-                {
-                    IdPlato = 4,
-                    NombrePlato = "Hamburguesa Gourmet Doble",
-                    Precio = 9.50m,
-                    Calorias = 850,
-                    Descripcion = "Hamburguesa artesanal con carne de res premium, pan brioche, queso cheddar fundido y aderezo especial de la casa.",
-                    RestauranteId = 4,
-                    Ingredientes = new List<Ingrediente>
-                    {
-                        new Ingrediente { IdIngr = 13, NombreIngr = "Carne de res", EsAlergeno = false },
-                        new Ingrediente { IdIngr = 14, NombreIngr = "Pan brioche (Gluten)", EsAlergeno = true },
-                        new Ingrediente { IdIngr = 15, NombreIngr = "Queso cheddar (Lactosa)", EsAlergeno = true }
-                    }
-                },
-                new Plato
-                {
-                    IdPlato = 5,
-                    NombrePlato = "Pasta Alfredo Fettuccine",
-                    Precio = 11.00m,
-                    Calorias = 750,
-                    Descripcion = "Fideos fettuccine premium en una cremosa y clásica salsa Alfredo de queso y crema italiana.",
-                    RestauranteId = 5,
-                    Ingredientes = new List<Ingrediente>
-                    {
-                        new Ingrediente { IdIngr = 16, NombreIngr = "Fettuccine (Gluten)", EsAlergeno = true },
-                        new Ingrediente { IdIngr = 17, NombreIngr = "Crema de leche (Lactosa)", EsAlergeno = true },
-                        new Ingrediente { IdIngr = 18, NombreIngr = "Queso parmesano (Lactosa)", EsAlergeno = true }
-                    }
-                }
-            };
+            // Obtener platos de la base de datos con sus relaciones correspondientes
+            var dbPlates = _context.Platos
+                .Include(p => p.Restaurante)
+                .Include(p => p.Ingredientes)
+                .ToList();
 
-            // Recorremos los platos para calcular su puntuación de afinidad (Match Score)
+            // Recorremos los platos de la base de datos para calcular su puntuación de afinidad (Match Score)
             var scoredPlates = new List<(Plato Plato, decimal Score)>();
-            foreach (var plato in mockPlates)
+            foreach (var plato in dbPlates)
             {
                 decimal matchScore = CalculateMatch(preferencias, plato);
                 scoredPlates.Add((plato, matchScore));
