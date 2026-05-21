@@ -1,0 +1,8 @@
+## .NET Core
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.userosscache
+*.sln.docuser
