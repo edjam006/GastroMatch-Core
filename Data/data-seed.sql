@@ -1,11 +1,20 @@
 -- ====================================================================
--- GASTROMATCH CORE - DDL STRUCTURE & SEED DATA (CORREGIDO)
--- Author: Eduardo Andrade / ejac09102006@gmail.com
+-- ESQUEMA DDL Y CONFIGURACIÓN DE DATOS SEMILLA - GASTROMATCH CORE
 -- ====================================================================
 
--- 1. CREACIÓN DE TABLAS MAESTRAS INDEPENDIENTES (Sin llaves foráneas)
+-- SANEAMIENTO: Eliminación selectiva de estructuras previas para evitar conflictos de integridad
+DROP TABLE IF EXISTS "PedidoPlato" CASCADE;
+DROP TABLE IF EXISTS "PlatoIngrediente" CASCADE;
+DROP TABLE IF EXISTS "Pedidos" CASCADE;
+DROP TABLE IF EXISTS "Platos" CASCADE;
+DROP TABLE IF EXISTS "PreferenciaUsuarios" CASCADE;
+DROP TABLE IF EXISTS "Ingredientes" CASCADE;
+DROP TABLE IF EXISTS "Restaurantes" CASCADE;
+DROP TABLE IF EXISTS "Usuarios" CASCADE;
 
-CREATE TABLE IF NOT EXISTS "Usuarios" (
+-- 1. ESTRUCTURAS MAESTRAS INDEPENDIENTES
+
+CREATE TABLE "Usuarios" (
     "IdUsuario" INT PRIMARY KEY,
     "Nombre" VARCHAR(255) NOT NULL,
     "Email" VARCHAR(255) NOT NULL,
@@ -15,7 +24,7 @@ CREATE TABLE IF NOT EXISTS "Usuarios" (
     "HistorialBusqueda" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS "Restaurantes" (
+CREATE TABLE "Restaurantes" (
     "IdRest" INT PRIMARY KEY,
     "NombreLocal" VARCHAR(255) NOT NULL,
     "Direccion" VARCHAR(500),
@@ -24,16 +33,15 @@ CREATE TABLE IF NOT EXISTS "Restaurantes" (
     "HorarioCierre" TIME
 );
 
-CREATE TABLE IF NOT EXISTS "Ingredientes" (
+CREATE TABLE "Ingredientes" (
     "IdIngr" INT PRIMARY KEY,
     "NombreIngr" VARCHAR(255) NOT NULL,
     "EsAlergeno" BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+-- 2. ESTRUCTURAS DEPENDIENTES (Restricciones de Clave Foránea)
 
--- 2. CREACIÓN DE TABLAS DEPENDIENTES (Con llaves foráneas a las maestras)
-
-CREATE TABLE IF NOT EXISTS "PreferenciaUsuarios" (
+CREATE TABLE "PreferenciaUsuarios" (
     "IdPref" INT PRIMARY KEY,
     "TipoCocinaFavorita" VARCHAR(255),
     "RangoPrecioMax" NUMERIC(10,2),
@@ -43,7 +51,7 @@ CREATE TABLE IF NOT EXISTS "PreferenciaUsuarios" (
     CONSTRAINT "FK_PreferenciaUsuarios_Usuarios" FOREIGN KEY ("UsuarioId") REFERENCES "Usuarios" ("IdUsuario") ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS "Platos" (
+CREATE TABLE "Platos" (
     "IdPlato" INT PRIMARY KEY,
     "NombrePlato" VARCHAR(255) NOT NULL,
     "Precio" NUMERIC(10,2) NOT NULL,
@@ -53,20 +61,19 @@ CREATE TABLE IF NOT EXISTS "Platos" (
     CONSTRAINT "FK_Platos_Restaurantes" FOREIGN KEY ("RestauranteId") REFERENCES "Restaurantes" ("IdRest") ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS "Pedidos" (
+CREATE TABLE "Pedidos" (
     "IdPedido" INT PRIMARY KEY,
     "Fecha" TIMESTAMP NOT NULL,
     "TotalPagar" NUMERIC(10,2) NOT NULL,
-    "Estado" VARCHAR(50) NOT NULL, -- PENDING, PREPARING, DELIVERED
+    "Estado" VARCHAR(50) NOT NULL,
     "TiempoEntregaEstimado" INT,
     "UsuarioId" INT,
     CONSTRAINT "FK_Pedidos_Usuarios" FOREIGN KEY ("UsuarioId") REFERENCES "Usuarios" ("IdUsuario") ON DELETE CASCADE
 );
 
+-- 3. ASOCIACIONES MUCHOS A MUCHOS (Tablas de Unión Intermedias)
 
--- 3. CREACIÓN DE TABLAS INTERMEDIAS (Relaciones Muchos a Muchos)
-
-CREATE TABLE IF NOT EXISTS "PlatoIngrediente" (
+CREATE TABLE "PlatoIngrediente" (
     "PlatosIdPlato" INT,
     "IngredientesIdIngr" INT,
     PRIMARY KEY ("PlatosIdPlato", "IngredientesIdIngr"),
@@ -74,7 +81,7 @@ CREATE TABLE IF NOT EXISTS "PlatoIngrediente" (
     CONSTRAINT "FK_PlatoIngrediente_Ingredientes" FOREIGN KEY ("IngredientesIdIngr") REFERENCES "Ingredientes" ("IdIngr") ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS "PedidoPlato" (
+CREATE TABLE "PedidoPlato" (
     "PedidosIdPedido" INT,
     "PlatosIdPlato" INT,
     PRIMARY KEY ("PedidosIdPedido", "PlatosIdPlato"),
@@ -82,78 +89,64 @@ CREATE TABLE IF NOT EXISTS "PedidoPlato" (
     CONSTRAINT "FK_PedidoPlato_Platos" FOREIGN KEY ("PlatosIdPlato") REFERENCES "Platos" ("IdPlato") ON DELETE CASCADE
 );
 
+-- 4. REGISTROS DE CONFIGURACIÓN INICIAL (Datos Semilla)
 
--- 4. LIMPIEZA PREVENTIVA DE ENTORNO
-TRUNCATE TABLE "PlatoIngrediente", "PedidoPlato", "Ingredientes", "Platos", "Pedidos", "Restaurantes", "PreferenciaUsuarios", "Usuarios" RESTART IDENTITY CASCADE;
-
-
--- 5. INSERCIÓN DE DATOS SEMILLA
-
--- Usuarios de prueba con roles asignados
+-- Cuentas de usuario globales y de gestión
 INSERT INTO "Usuarios" ("IdUsuario", "Nombre", "Email", "Password", "Rol") VALUES
 (1, 'Eduardo Andrade', 'admin@gastromatch.com', 'Admin123*', 'Administrador'),
 (2, 'Carlos Rivas', 'manager@gastromatch.com', 'Manager123*', 'RestauranteManager');
 
--- Restaurantes locales reales
+-- Entidades de servicios gastronómicos localizados
 INSERT INTO "Restaurantes" ("IdRest", "NombreLocal", "Direccion", "Calificacion", "HorarioApertura", "HorarioCierre") VALUES
 (1, 'El Rincón Mexicano', 'Av. Amazonas N24-12, Quito', 4.7, '11:00:00', '22:00:00'),
 (2, 'Kyoto Sushi Bar', 'Calle Larga 8-24, Cuenca', 4.5, '12:00:00', '23:00:00'),
-(3, 'Trattoria Da Luigi', 'Av. 9 de Octubre 1200, Guayaquil', 4.8, '12:00:00', '22:30:00');
+(3, 'Trattoria Da Luigi', 'Av. 9 de Octubre 1200, Guayaquil', 4.8, '12:00:00', '22:30:00'),
+(4, 'Pizzería Bella Italia', 'Av. Interoceánica, Cumbayá', 4.6, '12:00:00', '23:00:00'),
+(5, 'Wok & Roll Fusion', 'Av. República del Salvador, Quito', 4.4, '11:30:00', '22:00:00');
 
--- Ingredientes y alérgenos de control
+-- Componentes e insumos alimenticios catalogados por criticidad médica
 INSERT INTO "Ingredientes" ("IdIngr", "NombreIngr", "EsAlergeno") VALUES
-(1, 'Tortilla de maíz', false),
-(2, 'Carne de cerdo', false),
-(3, 'Piña', false),
-(4, 'Cilantro', false),
-(5, 'Tortilla de trigo (Gluten)', true),
-(6, 'Carne de res', false),
-(7, 'Frijoles', false),
-(8, 'Queso cheddar (Lactosa)', true),
-(9, 'Salmón', false),
-(10, 'Arroz de sushi', false),
-(11, 'Aguacate', false),
-(12, 'Alga nori', false),
-(13, 'Queso crema (Lactosa)', true),
-(14, 'Langostinos', false),
-(15, 'Salsa picante', false),
-(16, 'Fetuccini (Gluten)', true),
-(17, 'Crema de leche (Lactosa)', true),
-(18, 'Queso parmesano (Lactosa)', true),
-(19, 'Salsa de tomate', false),
-(20, 'Albahaca', false),
-(21, 'Aceite de oliva', false),
-(22, 'Lechuga romana', false),
-(23, 'Pechuga de pollo', false),
-(24, 'Aderezo César (Lactosa)', true),
-(25, 'Crutones (Gluten)', true),
-(26, 'Tofu', false),
-(27, 'Champiñones', false),
-(28, 'Zanahoria', false),
-(29, 'Maní', true);
+(1, 'Tortilla de maíz', false), (2, 'Carne de cerdo', false), (3, 'Piña', false), (4, 'Cilantro', false),
+(5, 'Tortilla de trigo (Gluten)', true), (6, 'Carne de res', false), (7, 'Frijoles', false), (8, 'Queso cheddar (Lactosa)', true),
+(9, 'Salmón', false), (10, 'Arroz de sushi', false), (11, 'Aguacate', false), (12, 'Alga nori', false),
+(13, 'Queso crema (Lactosa)', true), (14, 'Langostinos', false), (15, 'Salsa picante', false), (16, 'Fetuccini (Gluten)', true),
+(17, 'Crema de leche (Lactosa)', true), (18, 'Queso parmesano (Lactosa)', true), (19, 'Salsa de tomate', false), (20, 'Albahaca', false),
+(21, 'Aceite de oliva', false), (22, 'Lechuga romana', false), (23, 'Pechuga de pollo', false), (24, 'Aderezo César (Lactosa)', true),
+(25, 'Crutones (Gluten)', true), (26, 'Tofu', false), (27, 'Champiñones', false), (28, 'Zanahoria', false), (29, 'Maní', true),
+(30, 'Masa tradicional (Gluten)', true), (31, 'Queso Mozzarella (Lactosa)', true), (32, 'Fideos de Arroz', false);
 
--- Catálogo de platos estructurados
+-- Catálogo maestro de platos diversificado por precio, tipo de cocina y restricción sanitaria
 INSERT INTO "Platos" ("IdPlato", "NombrePlato", "Precio", "Calorias", "Descripcion", "RestauranteId") VALUES
 (1, 'Tacos Al Pastor', 8.50, 650, 'Tacos de cerdo marinado con piña y cilantro en tortillas de maíz.', 1),
-(2, 'Burrito de Res', 9.50, 850, 'Burrito relleno de carne de res, frijoles y queso cheddar en tortilla de trigo.', 1),
-(3, 'Sushi Roll Dragon', 12.00, 450, 'Rollo de sushi premium con salmón, aguacate, queso crema y algas nori.', 2),
-(4, 'Sushi Vegano', 10.00, 300, 'Rollo de sushi con aguacate, zanahoria y pepino envuelto en alga nori.', 2),
-(5, 'Fettuccine Alfredo', 11.00, 750, 'Fideos fettuccine en salsa Alfredo de queso y crema.', 3),
-(6, 'Pizza Margherita', 9.00, 700, 'Pizza clásica con salsa de tomate, mozzarella fresca y hojas de albahaca.', 3),
-(7, 'Ensalada César', 7.50, 400, 'Lechuga romana con pechuga de pollo, aderezo César y queso parmesano.', 3),
-(8, 'Tacos Veganos de Tofu', 8.00, 450, 'Tacos de tofu marinado con aguacate y cilantro en tortillas de maíz.', 1),
-(9, 'Ramen Asiático de Pollo', 13.00, 650, 'Sopa tradicional de ramen con fideos de trigo, caldo y pechuga de pollo.', 2),
-(10, 'Pad Thai de Langostinos con Maní', 14.50, 700, 'Fideos de arroz salteados con langostinos, brotes de soja y maní triturado.', 2);
+(2, 'Burrito de Res Extra', 11.50, 850, 'Burrito grande relleno de carne de res, frijoles y queso cheddar en tortilla de trigo.', 1),
+(3, 'Sushi Roll Dragon', 14.00, 450, 'Rollo de sushi premium con salmón, aguacate, queso crema y algas nori.', 2),
+(4, 'Sushi Vegano Zen', 10.00, 300, 'Rollo de sushi con aguacate, zanahoria y pepino envuelto en alga nori elemental.', 2),
+(5, 'Fettuccine Alfredo Clásico', 13.00, 750, 'Fideos fettuccine en salsa Alfredo cremosa de queso y crema de leche.', 3),
+(6, 'Pizza Margherita Rustica', 9.50, 700, 'Pizza clásica con salsa de tomate de la casa, mozzarella fresca y hojas de albahaca.', 3),
+(7, 'Ensalada César Tradicional', 8.00, 400, 'Lechuga romana fresca con pechuga de pollo a la plancha, aderezo César y crutones.', 3),
+(8, 'Tacos Veganos de Tofu', 9.00, 450, 'Tacos de tofu marinado a la plancha con aguacate y cilantro en tortillas de maíz.', 1),
+(9, 'Ramen Asiático de Pollo', 15.00, 650, 'Sopa tradicional de ramen con fideos de trigo, caldo concentrado y pechuga de pollo.', 2),
+(10, 'Pad Thai de Langostinos', 16.50, 700, 'Fideos de arroz salteados al wok con langostinos, brotes de soja y maní triturado.', 2),
+(11, 'Pizza Pepperoni Flat', 12.00, 800, 'Pizza de masa fina con salsa de tomate pomodoro, abundante mozzarella y rodajas de pepperoni.', 4),
+(12, 'Calzone di Formaggio', 14.50, 850, 'Masa doblada y horneada rellena de queso mozzarella, ricota y parmesano con salsa.', 4),
+(13, 'Chow Mein de Res al Wok', 13.50, 600, 'Fideos salteados al wok con finas tiras de lomo de res, vegetales mixtos y salsa de soya.', 5),
+(14, 'Arroz Frito Especial Vegano', 10.50, 500, 'Arroz salteado a alta temperatura con tofu picado, zanahoria, guisantes y brotes.', 5),
+(15, 'Tacos de Alambre de Res', 10.00, 720, 'Carne de res salteada con pimientos y cebolla, servida sobre base de tortillas de maíz.', 1);
 
--- Mapeo relacional Muchos a Muchos (PlatoIngrediente)
+-- Mapeo distributivo de relaciones N a N entre Platos e Ingredientes
 INSERT INTO "PlatoIngrediente" ("PlatosIdPlato", "IngredientesIdIngr") VALUES
 (1, 1), (1, 2), (1, 3), (1, 4),
 (2, 5), (2, 6), (2, 7), (2, 8),
 (3, 9), (3, 10), (3, 11), (3, 12), (3, 13),
 (4, 10), (4, 11), (4, 12), (4, 28),
 (5, 16), (5, 17), (5, 18),
-(6, 16), (6, 8), (6, 19), (6, 20), (6, 21),
+(6, 30), (6, 31), (6, 19), (6, 20), (6, 21),
 (7, 22), (7, 23), (7, 24), (7, 25), (7, 18),
 (8, 1), (8, 26), (8, 11), (8, 4), (8, 27),
 (9, 16), (9, 23), (9, 12), (9, 27),
-(10, 10), (10, 14), (10, 29);
+(10, 32), (10, 14), (10, 29),
+(11, 30), (11, 31), (11, 19),
+(12, 30), (12, 31), (12, 17), (12, 18),
+(13, 16), (13, 6), (13, 28),
+(14, 10), (14, 26), (14, 28),
+(15, 1), (15, 6), (15, 8);
