@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using GastroMatch_Core.Models;
 using GastroMatch_Core.Services;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Security.Claims;
 
 namespace GastroMatch_Core.Controllers
 {
+    [Authorize]
     public class RecommendationController : Controller
     {
         private readonly IRecommendationService _recommendationService;

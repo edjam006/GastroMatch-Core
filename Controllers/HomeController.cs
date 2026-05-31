@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using GastroMatch_Core.Models;
 
 namespace GastroMatch_Core.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
     public IActionResult Index()
