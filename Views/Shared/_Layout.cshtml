@@ -56,7 +56,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
-                    <ul class="navbar-nav gap-2">
+                    <ul class="navbar-nav gap-2 align-items-center">
                         <li class="nav-item">
                             <a class="nav-link active px-3 rounded-pill" asp-area="" asp-controller="Home" asp-action="Index">
                                 <i class="bi bi-sliders me-1"></i> Preferencias
@@ -67,6 +67,36 @@
                                 <i class="bi bi-compass me-1"></i> Explorar
                             </a>
                         </li>
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link px-3 text-white-50 small">
+                                    <i class="bi bi-person-circle me-1"></i>@User.Identity.Name
+                                    <span class="badge bg-secondary ms-1">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                                </span>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm px-3 rounded-pill">
+                                        <i class="bi bi-box-arrow-right me-1"></i>Salir
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link px-3 rounded-pill text-white-50" asp-controller="Account" asp-action="Login">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-outline-primary btn-sm px-3 rounded-pill" asp-controller="Account" asp-action="Register">
+                                    Registrarse
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

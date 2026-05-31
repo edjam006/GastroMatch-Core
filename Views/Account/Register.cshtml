@@ -1,0 +1,59 @@
+@model GastroMatch_Core.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Registro";
+}
+
+<div class="row justify-content-center align-items-center min-vh-75 py-4">
+    <div class="col-md-5 col-lg-4">
+        <div class="card bg-dark text-white border border-secondary border-opacity-25">
+            <div class="card-body p-4">
+                <h4 class="card-title fw-bold mb-1">Crear Cuenta</h4>
+                <p class="text-white-50 small mb-4">Complete los campos para registrarse en el sistema.</p>
+
+                <form asp-action="Register" asp-controller="Account" method="post">
+                    <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nombre" class="form-label small fw-semibold">Nombre Completo</label>
+                        <input asp-for="Nombre" class="form-control" placeholder="Eduardo Andrade" />
+                        <span asp-validation-for="Nombre" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label small fw-semibold">Correo Electrónico</label>
+                        <input asp-for="Email" class="form-control" placeholder="usuario@correo.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label small fw-semibold">Contraseña</label>
+                        <input asp-for="Password" class="form-control" type="password" placeholder="Mínimo 6 caracteres" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Rol" class="form-label small fw-semibold">Rol en el Sistema</label>
+                        <select asp-for="Rol" class="form-select">
+                            <option value="Administrador">Administrador</option>
+                            <option value="RestauranteManager" selected>RestauranteManager</option>
+                        </select>
+                        <span asp-validation-for="Rol" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Registrarse</button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <span class="text-white-50 small">¿Ya tiene cuenta?</span>
+                    <a asp-action="Login" asp-controller="Account" class="small text-decoration-none">Iniciar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .min-vh-75 {
+        min-height: 75vh;
+    }
+</style>

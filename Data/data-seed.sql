@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS "Usuarios" (
     "Nombre" VARCHAR(255) NOT NULL,
     "Email" VARCHAR(255) NOT NULL,
     "Password" VARCHAR(255) NOT NULL,
+    "Rol" VARCHAR(50) NOT NULL DEFAULT 'RestauranteManager',
     "UbicacionActual" VARCHAR(500),
     "HistorialBusqueda" TEXT
 );
@@ -87,6 +88,11 @@ TRUNCATE TABLE "PlatoIngrediente", "PedidoPlato", "Ingredientes", "Platos", "Ped
 
 
 -- 5. INSERCIÓN DE DATOS SEMILLA
+
+-- Usuarios de prueba con roles asignados
+INSERT INTO "Usuarios" ("IdUsuario", "Nombre", "Email", "Password", "Rol") VALUES
+(1, 'Eduardo Andrade', 'admin@gastromatch.com', 'Admin123*', 'Administrador'),
+(2, 'Carlos Rivas', 'manager@gastromatch.com', 'Manager123*', 'RestauranteManager');
 
 -- Restaurantes locales reales
 INSERT INTO "Restaurantes" ("IdRest", "NombreLocal", "Direccion", "Calificacion", "HorarioApertura", "HorarioCierre") VALUES

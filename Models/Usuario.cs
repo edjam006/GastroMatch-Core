@@ -20,6 +20,10 @@ namespace GastroMatch_Core.Models
         [StringLength(255)]
         public string Password { get; set; } = string.Empty;
 
+        [Required]
+        [StringLength(50)]
+        public string Rol { get; set; } = "RestauranteManager";
+
         [StringLength(255)]
         public string? UbicacionActual { get; set; }
 
