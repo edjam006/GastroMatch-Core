@@ -66,6 +66,21 @@ namespace GastroMatch_Core.Data
                 .Property(p => p.TotalPagar)
                 .HasPrecision(18, 2);
 
+            // Precisiones de Latitud y Longitud (10, 6)
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.Latitud)
+                .HasPrecision(10, 6);
+            modelBuilder.Entity<Usuario>()
+                .Property(u => u.Longitud)
+                .HasPrecision(10, 6);
+
+            modelBuilder.Entity<Restaurante>()
+                .Property(r => r.Latitud)
+                .HasPrecision(10, 6);
+            modelBuilder.Entity<Restaurante>()
+                .Property(r => r.Longitud)
+                .HasPrecision(10, 6);
+
             // Configurar el Enum de Pedido como string en la base de datos
             modelBuilder.Entity<Pedido>()
                 .Property(p => p.Estado)

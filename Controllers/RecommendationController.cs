@@ -21,12 +21,11 @@ namespace GastroMatch_Core.Controllers
         [HttpPost]
         public IActionResult ProcesarPreferencias(decimal RangoPrecioMax, List<string> tipoCocina, List<string> salud)
         {
-            // Recuperar el ID del usuario autenticado desde los Claims de seguridad
-            int usuarioId = 1;
+            // Recuperar el ID del usuario autenticado desde los Claims de seguridad de forma estricta
             var idClaim = User.FindFirst("IdUsuario");
-            if (idClaim != null && int.TryParse(idClaim.Value, out int parsedId))
+            if (idClaim == null || !int.TryParse(idClaim.Value, out int usuarioId))
             {
-                usuarioId = parsedId;
+                return Challenge();
             }
 
             // Mapeamos los datos del formulario al modelo de PreferenciaUsuario

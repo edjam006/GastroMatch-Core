@@ -163,10 +163,36 @@ namespace GastroMatch_Core.Services
             return Math.Max(0.0m, matchScore);
         }
 
+        private static double CalcularDistanciaHaversine(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371.0; // Radio de la Tierra en kilómetros
+
+            double dLat = ToRadians(lat2 - lat1);
+            double dLon = ToRadians(lon2 - lon1);
+
+            double a = Math.Sin(dLat / 2.0) * Math.Sin(dLat / 2.0) +
+                       Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
+                       Math.Sin(dLon / 2.0) * Math.Sin(dLon / 2.0);
+
+            double c = 2.0 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1.0 - a));
+
+            return R * c;
+        }
+
+        private static double ToRadians(double angle)
+        {
+            return (Math.PI / 180.0) * angle;
+        }
+
         public List<PlatoRecommendationViewModel> GetTopPicks(PreferenciaUsuario preferencias)
         {
             if (preferencias == null)
                 return new List<PlatoRecommendationViewModel>();
+
+            // Obtener la Latitud y Longitud del usuario autenticado
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == preferencias.UsuarioId);
+            double userLat = (double)(usuario?.Latitud ?? -0.182778m);
+            double userLon = (double)(usuario?.Longitud ?? -78.484167m);
 
             // Obtener platos de la base de datos con sus relaciones correspondientes
             var dbPlates = _context.Platos
@@ -180,7 +206,11 @@ namespace GastroMatch_Core.Services
             {
                 decimal matchScore = CalculateMatch(preferencias, plato);
                 int matchPercentage = (int)(matchScore * 100m);
-                double distanceKm = 0.6 + (plato.IdPlato % 4) * 0.5;
+                
+                double restLat = (double)(plato.Restaurante?.Latitud ?? -0.182778m);
+                double restLon = (double)(plato.Restaurante?.Longitud ?? -78.484167m);
+                double distanceKm = CalcularDistanciaHaversine(userLat, userLon, restLat, restLon);
+                
                 scoredPlates.Add((plato, matchScore, matchPercentage, distanceKm));
             }
 

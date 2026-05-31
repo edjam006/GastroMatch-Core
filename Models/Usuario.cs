@@ -24,8 +24,9 @@ namespace GastroMatch_Core.Models
         [StringLength(50)]
         public string Rol { get; set; } = "RestauranteManager";
 
-        [StringLength(255)]
-        public string? UbicacionActual { get; set; }
+        public decimal? Latitud { get; set; }
+
+        public decimal? Longitud { get; set; }
 
         public string? HistorialBusqueda { get; set; }
 

@@ -24,6 +24,10 @@ namespace GastroMatch_Core.Models
         [Required]
         public TimeSpan HorarioCierre { get; set; }
 
+        public decimal? Latitud { get; set; }
+
+        public decimal? Longitud { get; set; }
+
         // Relación 1-a-N con Plato
         public virtual ICollection<Plato> Platos { get; set; } = new List<Plato>();
     }
