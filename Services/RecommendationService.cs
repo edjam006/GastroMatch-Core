@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using GastroMatch_Core.Data;
 using GastroMatch_Core.Models;
+using GastroMatch_Core.Controllers;
 
 namespace GastroMatch_Core.Services
 {
@@ -162,10 +163,10 @@ namespace GastroMatch_Core.Services
             return Math.Max(0.0m, matchScore);
         }
 
-        public List<Plato> GetTopPicks(PreferenciaUsuario preferencias)
+        public List<PlatoRecommendationViewModel> GetTopPicks(PreferenciaUsuario preferencias)
         {
             if (preferencias == null)
-                return new List<Plato>();
+                return new List<PlatoRecommendationViewModel>();
 
             // Obtener platos de la base de datos con sus relaciones correspondientes
             var dbPlates = _context.Platos
@@ -173,24 +174,27 @@ namespace GastroMatch_Core.Services
                 .Include(p => p.Ingredientes)
                 .ToList();
 
-            // Recorremos los platos de la base de datos para calcular su puntuación de afinidad (Match Score)
-            var scoredPlates = new List<(Plato Plato, decimal Score)>();
+            // Pipeline unificado: calcular score, distancia y porcentaje en un único bucle
+            var scoredPlates = new List<(Plato Plato, decimal Score, int MatchPercentage, double DistanceKm)>();
             foreach (var plato in dbPlates)
             {
                 decimal matchScore = CalculateMatch(preferencias, plato);
-                scoredPlates.Add((plato, matchScore));
+                int matchPercentage = (int)(matchScore * 100m);
+                double distanceKm = 0.6 + (plato.IdPlato % 4) * 0.5;
+                scoredPlates.Add((plato, matchScore, matchPercentage, distanceKm));
             }
 
-            // Aplicamos los filtros solicitados mediante LINQ:
-            // 1. Filtrar por precio menor o igual al rango máximo del usuario.
-            // 2. Filtrar para evitar recomendar platos con 0% de compatibilidad (descartes críticos de salud).
-            // 3. Ordenar descendientemente por el Match Score.
-            // 4. Retornar estrictamente el Top 3.
+            // Filtrar, ordenar y proyectar al ViewModel en un flujo LINQ continuo
             var recommendations = scoredPlates
                 .Where(sp => sp.Plato.Precio <= preferencias.RangoPrecioMax && sp.Score > 0m)
                 .OrderByDescending(sp => sp.Score)
-                .Select(sp => sp.Plato)
                 .Take(3)
+                .Select(sp => new Controllers.PlatoRecommendationViewModel
+                {
+                    Plato = sp.Plato,
+                    MatchPercentage = sp.MatchPercentage,
+                    DistanceKm = sp.DistanceKm
+                })
                 .ToList();
 
             return recommendations;
