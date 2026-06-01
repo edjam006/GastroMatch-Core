@@ -24,139 +24,48 @@ namespace GastroMatch_Core.Services
 
             decimal matchScore = 1.0m; // Match base de 100%
 
-            // 1. Descarte crítico por salud (Alergias y Restricciones Dietéticas)
-            // Evaluamos intolerancias al Gluten, Lactosa y dieta Vegana de forma proactiva.
-            bool userHasGlutenSensitivity = 
-                preferencia.Alergias?.Contains("Gluten", StringComparison.OrdinalIgnoreCase) == true ||
-                preferencia.RestriccionesDieteticas?.Contains("Gluten", StringComparison.OrdinalIgnoreCase) == true ||
-                preferencia.Alergias?.Contains("Sin Gluten", StringComparison.OrdinalIgnoreCase) == true ||
-                preferencia.RestriccionesDieteticas?.Contains("Sin Gluten", StringComparison.OrdinalIgnoreCase) == true;
+            // 1. Filtro de Salud e Ingredientes Genérico (Dinámico)
+            var healthTokens = new List<string>();
 
-            bool userHasLactoseSensitivity = 
-                preferencia.Alergias?.Contains("Lactosa", StringComparison.OrdinalIgnoreCase) == true ||
-                preferencia.RestriccionesDieteticas?.Contains("Lactosa", StringComparison.OrdinalIgnoreCase) == true ||
-                preferencia.Alergias?.Contains("Sin Lactosa", StringComparison.OrdinalIgnoreCase) == true ||
-                preferencia.RestriccionesDieteticas?.Contains("Sin Lactosa", StringComparison.OrdinalIgnoreCase) == true;
-
-            bool userIsVegan = 
-                preferencia.Alergias?.Contains("Vegano", StringComparison.OrdinalIgnoreCase) == true ||
-                preferencia.RestriccionesDieteticas?.Contains("Vegano", StringComparison.OrdinalIgnoreCase) == true;
-
-            // Analizamos el plato para ver si contiene Gluten
-            bool platoContainsGluten = 
-                plato.NombrePlato.Contains("Pan", StringComparison.OrdinalIgnoreCase) ||
-                plato.NombrePlato.Contains("Pasta", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("crutones", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("brioche", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("fettuccine", StringComparison.OrdinalIgnoreCase) ||
-                plato.Ingredientes.Any(i => i.NombreIngr.Contains("Gluten", StringComparison.OrdinalIgnoreCase) || 
-                                             i.NombreIngr.Contains("Pan", StringComparison.OrdinalIgnoreCase) ||
-                                             i.NombreIngr.Contains("Crutones", StringComparison.OrdinalIgnoreCase) ||
-                                             i.NombreIngr.Contains("Fettuccine", StringComparison.OrdinalIgnoreCase));
-
-            // Analizamos el plato para ver si contiene Lactosa
-            bool platoContainsLactose = 
-                plato.Descripcion.Contains("queso", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("crema", StringComparison.OrdinalIgnoreCase) ||
-                plato.Ingredientes.Any(i => i.NombreIngr.Contains("Lactosa", StringComparison.OrdinalIgnoreCase) || 
-                                             i.NombreIngr.Contains("Queso", StringComparison.OrdinalIgnoreCase) ||
-                                             i.NombreIngr.Contains("Crema", StringComparison.OrdinalIgnoreCase));
-
-            // Analizamos el plato para ver si contiene productos de origen animal
-            bool platoContainsAnimalProducts = 
-                platoContainsLactose ||
-                plato.NombrePlato.Contains("Tacos", StringComparison.OrdinalIgnoreCase) ||
-                plato.NombrePlato.Contains("Hamburguesa", StringComparison.OrdinalIgnoreCase) ||
-                plato.NombrePlato.Contains("Pollo", StringComparison.OrdinalIgnoreCase) ||
-                plato.NombrePlato.Contains("Cerdo", StringComparison.OrdinalIgnoreCase) ||
-                plato.NombrePlato.Contains("Res", StringComparison.OrdinalIgnoreCase) ||
-                plato.NombrePlato.Contains("Salmón", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("pollo", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("cerdo", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("salmón", StringComparison.OrdinalIgnoreCase) ||
-                plato.Descripcion.Contains("res", StringComparison.OrdinalIgnoreCase) ||
-                plato.Ingredientes.Any(i => i.NombreIngr.Contains("Pollo", StringComparison.OrdinalIgnoreCase) ||
-                                             i.NombreIngr.Contains("Cerdo", StringComparison.OrdinalIgnoreCase) ||
-                                             i.NombreIngr.Contains("Carne", StringComparison.OrdinalIgnoreCase) ||
-                                             i.NombreIngr.Contains("Salmón", StringComparison.OrdinalIgnoreCase) ||
-                                             i.NombreIngr.Contains("Res", StringComparison.OrdinalIgnoreCase));
-
-            // Evaluamos descartes drásticos de salud
-            if (userHasGlutenSensitivity && platoContainsGluten) return 0.0m;
-            if (userHasLactoseSensitivity && platoContainsLactose) return 0.0m;
-            if (userIsVegan && platoContainsAnimalProducts) return 0.0m;
-
-            // Filtro general por coincidencias de texto de alergias específicas en el plato o sus ingredientes
             if (!string.IsNullOrEmpty(preferencia.Alergias))
             {
-                var allergies = preferencia.Alergias.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                foreach (var allergy in allergies)
-                {
-                    if (plato.NombrePlato.Contains(allergy, StringComparison.OrdinalIgnoreCase) ||
-                        plato.Descripcion.Contains(allergy, StringComparison.OrdinalIgnoreCase) ||
-                        plato.Ingredientes.Any(i => i.NombreIngr.Contains(allergy, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        return 0.0m;
-                    }
-                }
+                var tokens = preferencia.Alergias.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                healthTokens.AddRange(tokens);
             }
 
-            // Filtro general por restricciones dietéticas adicionales
             if (!string.IsNullOrEmpty(preferencia.RestriccionesDieteticas))
             {
-                var restrictions = preferencia.RestriccionesDieteticas.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                foreach (var restriction in restrictions)
+                var tokens = preferencia.RestriccionesDieteticas.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                healthTokens.AddRange(tokens);
+            }
+
+            // Eliminar duplicados para eficiencia
+            healthTokens = healthTokens.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+            foreach (var token in healthTokens)
+            {
+                // Validación crítica de seguridad: comparación de subcadena insensible a mayúsculas/minúsculas
+                if (plato.NombrePlato.Contains(token, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(plato.Descripcion) && plato.Descripcion.Contains(token, StringComparison.OrdinalIgnoreCase)) ||
+                    (plato.Ingredientes != null && plato.Ingredientes.Any(i => i.NombreIngr.Contains(token, StringComparison.OrdinalIgnoreCase))))
                 {
-                    if (plato.NombrePlato.Contains(restriction, StringComparison.OrdinalIgnoreCase) ||
-                        plato.Descripcion.Contains(restriction, StringComparison.OrdinalIgnoreCase) ||
-                        plato.Ingredientes.Any(i => i.NombreIngr.Contains(restriction, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        return 0.0m;
-                    }
+                    return 0.0m; // Early exit de seguridad sanitaria
                 }
             }
 
-            // 2. Coincidencia de tipo de cocina (Si coincide se mantiene alto; si no, penalización del 30%)
-            bool matchesCuisine = false;
-            string favCuisine = preferencia.TipoCocinaFavorita;
-            
-            if (!string.IsNullOrEmpty(favCuisine))
-            {
-                if (favCuisine.Contains("Italiana", StringComparison.OrdinalIgnoreCase) && 
-                    (plato.NombrePlato.Contains("Pasta", StringComparison.OrdinalIgnoreCase) || 
-                     plato.NombrePlato.Contains("César", StringComparison.OrdinalIgnoreCase) || 
-                     plato.NombrePlato.Contains("Pizza", StringComparison.OrdinalIgnoreCase) || 
-                     plato.Descripcion.Contains("Alfredo", StringComparison.OrdinalIgnoreCase) || 
-                     plato.Descripcion.Contains("parmesano", StringComparison.OrdinalIgnoreCase) ||
-                     plato.Descripcion.Contains("italiana", StringComparison.OrdinalIgnoreCase) ||
-                     plato.Descripcion.Contains("margherita", StringComparison.OrdinalIgnoreCase)))
-                {
-                    matchesCuisine = true;
-                }
-                else if (favCuisine.Contains("Mexicana", StringComparison.OrdinalIgnoreCase) && 
-                    (plato.NombrePlato.Contains("Tacos", StringComparison.OrdinalIgnoreCase) || 
-                     plato.NombrePlato.Contains("Burrito", StringComparison.OrdinalIgnoreCase) || 
-                     plato.Descripcion.Contains("cerdo marinado", StringComparison.OrdinalIgnoreCase) || 
-                     plato.Descripcion.Contains("tortillas", StringComparison.OrdinalIgnoreCase) ||
-                     plato.Descripcion.Contains("mexicana", StringComparison.OrdinalIgnoreCase)))
-                {
-                    matchesCuisine = true;
-                }
-                else if (favCuisine.Contains("Asiática", StringComparison.OrdinalIgnoreCase) && 
-                    (plato.NombrePlato.Contains("Sushi", StringComparison.OrdinalIgnoreCase) || 
-                     plato.NombrePlato.Contains("Ramen", StringComparison.OrdinalIgnoreCase) || 
-                     plato.NombrePlato.Contains("Thai", StringComparison.OrdinalIgnoreCase) || 
-                     plato.Descripcion.Contains("nori", StringComparison.OrdinalIgnoreCase) || 
-                     plato.Descripcion.Contains("sushi", StringComparison.OrdinalIgnoreCase) ||
-                     plato.Descripcion.Contains("asiático", StringComparison.OrdinalIgnoreCase)))
-                {
-                    matchesCuisine = true;
-                }
-            }
+            // 2. Filtro de Cocina Dinámico
+            string? favCuisine = preferencia.TipoCocinaFavorita;
+            string? restCuisine = plato.Restaurante?.TipoCocina;
 
-            if (!matchesCuisine)
+            if (!string.IsNullOrEmpty(restCuisine))
             {
-                matchScore -= 0.30m; // Penalización del 30% si no coincide con su cocina favorita
+                bool matchesCuisine = !string.IsNullOrEmpty(favCuisine) && 
+                                     favCuisine.Contains(restCuisine, StringComparison.OrdinalIgnoreCase);
+
+                if (!matchesCuisine)
+                {
+                    matchScore -= 0.30m; // Penalización suave por cocina del -30%
+                }
             }
 
             // Aseguramos que la afinidad nunca sea negativa

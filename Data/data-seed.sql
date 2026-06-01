@@ -33,7 +33,8 @@ CREATE TABLE "Restaurantes" (
     "HorarioApertura" TIME,
     "HorarioCierre" TIME,
     "Latitud" NUMERIC(10,6),
-    "Longitud" NUMERIC(10,6)
+    "Longitud" NUMERIC(10,6),
+    "TipoCocina" VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE "Ingredientes" (
@@ -100,12 +101,12 @@ INSERT INTO "Usuarios" ("IdUsuario", "Nombre", "Email", "Password", "Rol", "Lati
 (2, 'Carlos Rivas', 'manager@gastromatch.com', 'Manager123*', 'RestauranteManager', -0.191667, -78.488333);
 
 -- Entidades de servicios gastronómicos localizados en Quito
-INSERT INTO "Restaurantes" ("IdRest", "NombreLocal", "Direccion", "Calificacion", "HorarioApertura", "HorarioCierre", "Latitud", "Longitud") VALUES
-(1, 'El Rincón Mexicano', 'Av. Amazonas N24-12, Quito', 4.7, '11:00:00', '22:00:00', -0.201667, -78.490833),
-(2, 'Kyoto Sushi Bar', 'Av. de los Shyris y Av. Portugal, Quito', 4.5, '12:00:00', '23:00:00', -0.179722, -78.481944),
-(3, 'Trattoria Da Luigi', 'Av. Francisco de Orellana, Quito', 4.8, '12:00:00', '22:30:00', -0.185278, -78.483611),
-(4, 'Pizzería Bella Italia', 'Av. Interoceánica, Cumbayá', 4.6, '12:00:00', '23:00:00', -0.198333, -78.438889),
-(5, 'Wok & Roll Fusion', 'Av. República del Salvador, Quito', 4.4, '11:30:00', '22:00:00', -0.181389, -78.482778);
+INSERT INTO "Restaurantes" ("IdRest", "NombreLocal", "Direccion", "Calificacion", "HorarioApertura", "HorarioCierre", "Latitud", "Longitud", "TipoCocina") VALUES
+(1, 'El Rincón Mexicano', 'Av. Amazonas N24-12, Quito', 4.7, '11:00:00', '22:00:00', -0.201667, -78.490833, 'Mexicana'),
+(2, 'Kyoto Sushi Bar', 'Av. de los Shyris y Av. Portugal, Quito', 4.5, '12:00:00', '23:00:00', -0.179722, -78.481944, 'Asiática'),
+(3, 'Trattoria Da Luigi', 'Av. Francisco de Orellana, Quito', 4.8, '12:00:00', '22:30:00', -0.185278, -78.483611, 'Italiana'),
+(4, 'Pizzería Bella Italia', 'Av. Interoceánica, Cumbayá', 4.6, '12:00:00', '23:00:00', -0.198333, -78.438889, 'Italiana'),
+(5, 'Wok & Roll Fusion', 'Av. República del Salvador, Quito', 4.4, '11:30:00', '22:00:00', -0.181389, -78.482778, 'Asiática');
 
 -- Componentes e insumos alimenticios catalogados por criticidad médica
 INSERT INTO "Ingredientes" ("IdIngr", "NombreIngr", "EsAlergeno") VALUES
