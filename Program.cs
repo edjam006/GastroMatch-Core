@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using GastroMatch_Core.Data;
 using GastroMatch_Core.Services;
+using GastroMatch_Core.Services.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,11 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+// ── Registro de Servicios con Inversión de Dependencias (DIP) ──
+// Singleton: sin estado interno, reutilizable en todas las peticiones
+builder.Services.AddSingleton<IDistanceCalculator, HaversineDistanceCalculator>();
+builder.Services.AddSingleton<IRecommendationFilterFactory, RecommendationFilterFactory>();
+// Scoped: depende del DbContext que es Scoped por naturaleza
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

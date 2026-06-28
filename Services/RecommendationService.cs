@@ -5,130 +5,141 @@ using Microsoft.EntityFrameworkCore;
 using GastroMatch_Core.Data;
 using GastroMatch_Core.Models;
 using GastroMatch_Core.Controllers;
+using GastroMatch_Core.Services.Filters;
 
 namespace GastroMatch_Core.Services
 {
+    /// <summary>
+    /// Fachada principal del motor de recomendaciones de GastroMatch.
+    /// 
+    /// Patrón Facade: esta clase actúa como punto de entrada de alto nivel que coordina
+    /// múltiples subsistemas (cálculo de distancia, fábrica de filtros, pipeline de evaluación)
+    /// detrás de una interfaz simplificada (IRecommendationService).
+    /// 
+    /// Principio DIP: depende exclusivamente de abstracciones (IDistanceCalculator,
+    /// IRecommendationFilterFactory), nunca de implementaciones concretas.
+    /// 
+    /// Principio SRP: su única responsabilidad es orquestar el flujo de recomendación,
+    /// delegando cada regla de negocio a su filtro correspondiente.
+    /// </summary>
     public class RecommendationService : IRecommendationService
     {
         private readonly AppDbContext _context;
+        private readonly IDistanceCalculator _distanceCalculator;
+        private readonly IRecommendationFilterFactory _filterFactory;
 
-        public RecommendationService(AppDbContext context)
+        // Coordenadas por defecto: centro de Quito, Ecuador (fallback geodésico)
+        private const decimal DefaultLatitude = -0.182778m;
+        private const decimal DefaultLongitude = -78.484167m;
+
+        public RecommendationService(
+            AppDbContext context,
+            IDistanceCalculator distanceCalculator,
+            IRecommendationFilterFactory filterFactory)
         {
             _context = context;
+            _distanceCalculator = distanceCalculator;
+            _filterFactory = filterFactory;
         }
 
+        /// <summary>
+        /// Calcula el porcentaje de afinidad entre las preferencias del usuario y un plato específico.
+        /// Delega internamente al pipeline de filtros Strategy para mantener consistencia.
+        /// Mantiene la firma original por retrocompatibilidad con IRecommendationService.
+        /// </summary>
         public decimal CalculateMatch(PreferenciaUsuario preferencia, Plato plato)
         {
             if (preferencia == null || plato == null)
                 return 0.0m;
 
-            decimal matchScore = 1.0m; // Match base de 100%
+            decimal score = 1.0m; // Match base de 100%
 
-            // 1. Filtro de Salud e Ingredientes Genérico (Dinámico)
-            var healthTokens = new List<string>();
+            // Ejecutar el pipeline de filtros Strategy sobre el plato
+            var filters = _filterFactory.CreateFilters(preferencia);
 
-            if (!string.IsNullOrEmpty(preferencia.Alergias))
+            foreach (var filter in filters)
             {
-                var tokens = preferencia.Alergias.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                healthTokens.AddRange(tokens);
+                var result = filter.Apply(plato, preferencia, score);
+
+                if (result.IsExcluded)
+                    return 0.0m; // Early exit propagado desde el filtro
+
+                score = result.Score;
             }
 
-            if (!string.IsNullOrEmpty(preferencia.RestriccionesDieteticas))
-            {
-                var tokens = preferencia.RestriccionesDieteticas.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                healthTokens.AddRange(tokens);
-            }
-
-            // Eliminar duplicados para eficiencia
-            healthTokens = healthTokens.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-            foreach (var token in healthTokens)
-            {
-                // Validación crítica de seguridad: comparación de subcadena insensible a mayúsculas/minúsculas
-                if (plato.NombrePlato.Contains(token, StringComparison.OrdinalIgnoreCase) ||
-                    (!string.IsNullOrEmpty(plato.Descripcion) && plato.Descripcion.Contains(token, StringComparison.OrdinalIgnoreCase)) ||
-                    (plato.Ingredientes != null && plato.Ingredientes.Any(i => i.NombreIngr.Contains(token, StringComparison.OrdinalIgnoreCase))))
-                {
-                    return 0.0m; // Early exit de seguridad sanitaria
-                }
-            }
-
-            // 2. Filtro de Cocina Dinámico
-            string? favCuisine = preferencia.TipoCocinaFavorita;
-            string? restCuisine = plato.Restaurante?.TipoCocina;
-
-            if (!string.IsNullOrEmpty(restCuisine))
-            {
-                bool matchesCuisine = !string.IsNullOrEmpty(favCuisine) && 
-                                     favCuisine.Contains(restCuisine, StringComparison.OrdinalIgnoreCase);
-
-                if (!matchesCuisine)
-                {
-                    matchScore -= 0.30m; // Penalización suave por cocina del -30%
-                }
-            }
-
-            // Aseguramos que la afinidad nunca sea negativa
-            return Math.Max(0.0m, matchScore);
+            return score;
         }
 
-        private static double CalcularDistanciaHaversine(double lat1, double lon1, double lat2, double lon2)
-        {
-            const double R = 6371.0; // Radio de la Tierra en kilómetros
-
-            double dLat = ToRadians(lat2 - lat1);
-            double dLon = ToRadians(lon2 - lon1);
-
-            double a = Math.Sin(dLat / 2.0) * Math.Sin(dLat / 2.0) +
-                       Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                       Math.Sin(dLon / 2.0) * Math.Sin(dLon / 2.0);
-
-            double c = 2.0 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1.0 - a));
-
-            return R * c;
-        }
-
-        private static double ToRadians(double angle)
-        {
-            return (Math.PI / 180.0) * angle;
-        }
-
+        /// <summary>
+        /// Obtiene las 3 mejores recomendaciones de platos para el usuario.
+        /// 
+        /// Flujo de la Fachada (Facade Pattern):
+        /// 1. Obtiene coordenadas del usuario (fallback: centro de Quito).
+        /// 2. Carga platos con relaciones (Restaurante, Ingredientes) desde la BD.
+        /// 3. Invoca la Factory para ensamblar el pipeline de filtros según el perfil.
+        /// 4. Ejecuta el pipeline Strategy sobre cada plato candidato.
+        /// 5. Calcula la distancia Haversine vía el servicio inyectado (DIP).
+        /// 6. Aplica el pipeline LINQ final: filtrar, ordenar y proyectar al ViewModel.
+        /// </summary>
         public List<PlatoRecommendationViewModel> GetTopPicks(PreferenciaUsuario preferencias)
         {
             if (preferencias == null)
                 return new List<PlatoRecommendationViewModel>();
 
-            // Obtener la Latitud y Longitud del usuario autenticado
+            // ── Paso 1: Obtener coordenadas del usuario autenticado ──
             var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == preferencias.UsuarioId);
-            double userLat = (double)(usuario?.Latitud ?? -0.182778m);
-            double userLon = (double)(usuario?.Longitud ?? -78.484167m);
+            double userLat = (double)(usuario?.Latitud ?? DefaultLatitude);
+            double userLon = (double)(usuario?.Longitud ?? DefaultLongitude);
 
-            // Obtener platos de la base de datos con sus relaciones correspondientes
+            // ── Paso 2: Cargar platos con sus relaciones desde la base de datos ──
             var dbPlates = _context.Platos
                 .Include(p => p.Restaurante)
                 .Include(p => p.Ingredientes)
                 .ToList();
 
-            // Pipeline unificado: calcular score, distancia y porcentaje en un único bucle
+            // ── Paso 3: Ensamblar el pipeline de filtros vía Factory Method ──
+            var filters = _filterFactory.CreateFilters(preferencias);
+
+            // ── Paso 4: Evaluar cada plato a través del pipeline de estrategias ──
             var scoredPlates = new List<(Plato Plato, decimal Score, int MatchPercentage, double DistanceKm)>();
+
             foreach (var plato in dbPlates)
             {
-                decimal matchScore = CalculateMatch(preferencias, plato);
+                // Ejecutar pipeline de filtros Strategy
+                decimal matchScore = 1.0m; // Match base de 100%
+                bool excluded = false;
+
+                foreach (var filter in filters)
+                {
+                    var result = filter.Apply(plato, preferencias, matchScore);
+
+                    if (result.IsExcluded)
+                    {
+                        excluded = true;
+                        break; // Early exit del pipeline
+                    }
+
+                    matchScore = result.Score;
+                }
+
+                if (excluded || matchScore <= 0m)
+                    continue; // Plato excluido — no agregar al pipeline LINQ
+
                 int matchPercentage = (int)(matchScore * 100m);
-                
-                double restLat = (double)(plato.Restaurante?.Latitud ?? -0.182778m);
-                double restLon = (double)(plato.Restaurante?.Longitud ?? -78.484167m);
-                double distanceKm = CalcularDistanciaHaversine(userLat, userLon, restLat, restLon);
-                
+
+                // ── Paso 5: Calcular distancia geográfica vía IDistanceCalculator (DIP) ──
+                double restLat = (double)(plato.Restaurante?.Latitud ?? DefaultLatitude);
+                double restLon = (double)(plato.Restaurante?.Longitud ?? DefaultLongitude);
+                double distanceKm = _distanceCalculator.Calculate(userLat, userLon, restLat, restLon);
+
                 scoredPlates.Add((plato, matchScore, matchPercentage, distanceKm));
             }
 
-            // Filtrar, ordenar y proyectar al ViewModel en un flujo LINQ continuo
+            // ── Paso 6: Pipeline LINQ final — ordenar y proyectar al ViewModel ──
             var recommendations = scoredPlates
-                .Where(sp => sp.Plato.Precio <= preferencias.RangoPrecioMax && sp.Score > 0m)
                 .OrderByDescending(sp => sp.Score)
                 .Take(3)
-                .Select(sp => new Controllers.PlatoRecommendationViewModel
+                .Select(sp => new PlatoRecommendationViewModel
                 {
                     Plato = sp.Plato,
                     MatchPercentage = sp.MatchPercentage,
